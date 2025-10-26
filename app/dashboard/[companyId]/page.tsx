@@ -5,6 +5,7 @@ import { ModulesSection } from "@/components/modules-section";
 import { MemberModulesView } from "@/components/member-modules-view";
 import { ResultsSidebar } from "@/components/results-sidebar";
 import { getRecentResults } from "@/app/actions/results";
+import { getModules } from "@/app/actions/modules";
 import { DebugAccess } from "@/components/debug-access";
 
 export default async function DashboardPage({
@@ -38,8 +39,13 @@ export default async function DashboardPage({
 	// Check if user is admin based on access data
 	const isAdmin = checkUserIsAdmin(userId, company, access);
 
-	// Fetch recent results for admin sidebar
-	const recentResults = isAdmin ? await getRecentResults(companyId, 10) : [];
+	// Fetch recent results and modules for admin sidebar
+	const [recentResults, modules] = isAdmin 
+		? await Promise.all([
+			getRecentResults(companyId, 10),
+			getModules(companyId)
+		])
+		: [[], []];
 
 	return (
 		<div className="min-h-screen bg-[#0a0a0a]">
@@ -69,7 +75,7 @@ export default async function DashboardPage({
 					
 					{/* Sidebar */}
 					<aside className="w-[400px] border-l border-gray-200/10 bg-[#0f0f0f] p-6">
-						<ResultsSidebar results={recentResults} />
+						<ResultsSidebar results={recentResults} modules={modules} />
 					</aside>
 				</div>
 			) : (

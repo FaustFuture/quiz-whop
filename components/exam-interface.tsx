@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
-import { Check, X, ChevronRight } from "lucide-react"
+import { Check, X, ChevronRight, Maximize2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -44,6 +44,7 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
   const [hasAnswered, setHasAnswered] = useState(false)
   const [showResults, setShowResults] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [fullscreenImage, setFullscreenImage] = useState<string | null>(null)
   const questionStartTime = useRef<number>(Date.now())
 
   const currentQuestion = questions[currentQuestionIndex]
@@ -279,13 +280,23 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
       <Card className="mb-6">
         <CardHeader>
           {currentQuestion.image_url && (
-            <div className="relative w-full h-48 mb-4 rounded-lg overflow-hidden">
-              <Image
-                src={currentQuestion.image_url}
-                alt="Question image"
-                fill
-                className="object-cover"
-              />
+            <div className="relative w-full mb-4 rounded-lg overflow-hidden bg-[#1a1a1a] border border-gray-200/10">
+              <div className="relative w-full max-h-64 flex items-center justify-center">
+                <Image
+                  src={currentQuestion.image_url}
+                  alt="Question image"
+                  width={800}
+                  height={600}
+                  className="w-full h-auto max-h-64 object-contain rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+                  onClick={() => setFullscreenImage(currentQuestion.image_url!)}
+                />
+                <button
+                  onClick={() => setFullscreenImage(currentQuestion.image_url!)}
+                  className="absolute top-2 right-2 p-2 bg-black/50 rounded-lg text-white hover:bg-black/70 transition-colors"
+                >
+                  <Maximize2 className="h-4 w-4" />
+                </button>
+              </div>
             </div>
           )}
           <CardTitle className="text-2xl">
@@ -374,6 +385,27 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
           )
         })}
       </div>
+
+      {/* Fullscreen Image Modal */}
+      {fullscreenImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm">
+          <div className="relative max-w-[90vw] max-h-[90vh] p-4">
+            <button
+              onClick={() => setFullscreenImage(null)}
+              className="absolute top-4 right-4 z-10 p-2 bg-black/50 rounded-lg text-white hover:bg-black/70 transition-colors"
+            >
+              <X className="h-6 w-6" />
+            </button>
+            <Image
+              src={fullscreenImage}
+              alt="Question image fullscreen"
+              width={1200}
+              height={800}
+              className="max-w-full max-h-full object-contain rounded-lg"
+            />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

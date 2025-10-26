@@ -160,25 +160,26 @@ export function ExerciseCard({
       {/* Exercise Card */}
       <Card className="flex-1 min-h-[400px] w-[600px] border-gray-200/10 bg-[#141414]">
         <CardHeader className="pb-3">
-          {/* Clickable Image - Full Width */}
+          {/* Clickable Image - Maintain Aspect Ratio */}
           <div 
-            className="w-full h-32 bg-[#1a1a1a] border border-gray-200/10 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-800 transition-colors group relative mb-4"
+            className="w-full bg-[#1a1a1a] border border-gray-200/10 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-800 transition-colors group relative mb-4 overflow-hidden"
             onClick={() => setImageDialogOpen(true)}
           >
             {currentExercise.image_url ? (
               <img
                 src={currentExercise.image_url}
                 alt="Exercise image"
-                className="w-full h-full object-cover rounded-lg"
+                className="w-full h-auto max-h-64 object-contain rounded-lg"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none'
                   e.currentTarget.nextElementSibling?.classList.remove('hidden')
                 }}
               />
-            ) : null}
-            <div className={`${currentExercise.image_url ? 'hidden' : ''} flex items-center justify-center`}>
-              <Camera className="w-12 h-12 text-gray-600" />
-            </div>
+            ) : (
+              <div className="w-full h-32 flex items-center justify-center">
+                <Camera className="w-12 h-12 text-gray-600" />
+              </div>
+            )}
             {/* Camera overlay on hover */}
             <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
               <Camera className="w-8 h-8 text-white" />

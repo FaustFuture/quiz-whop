@@ -1,40 +1,236 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Trophy, CheckCircle, XCircle, Eye } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Trophy, CheckCircle, XCircle, Eye, Download, Filter } from "lucide-react"
 import { type ResultWithModule } from "@/app/actions/results"
 import { ResultDetailsModal } from "@/components/result-details-modal"
+import { type Module } from "@/app/actions/modules"
 
 interface ResultsSidebarProps {
   results: ResultWithModule[]
+  modules: Module[]
 }
 
-export function ResultsSidebar({ results }: ResultsSidebarProps) {
+export function ResultsSidebar({ results, modules }: ResultsSidebarProps) {
   const [selectedResultId, setSelectedResultId] = useState<string | null>(null)
+  const [selectedModuleId, setSelectedModuleId] = useState<string>("all")
+  const [isExporting, setIsExporting] = useState(false)
+
+  // Filter results based on selected module
+  const filteredResults = useMemo(() => {
+    if (selectedModuleId === "all") {
+      return results
+    }
+    return results.filter(result => result.module_id === selectedModuleId)
+  }, [results, selectedModuleId])
+
+  // Generate CSV data
+  const generateCSV = async () => {
+    setIsExporting(true)
+    try {
+      if (selectedModuleId === "all") {
+        // Export summary data for all modules
+        const headers = [
+          "User ID",
+          "Module",
+          "Score (%)",
+          "Correct Answers",
+          "Total Questions",
+          "Submitted At"
+        ]
+        
+        const csvData = filteredResults.map(result => [
+          result.user_id,
+          result.module_title,
+          Math.round(result.score).toString(),
+          result.correct_answers.toString(),
+          result.total_questions.toString(),
+          new Date(result.submitted_at).toLocaleString()
+        ])
+        
+        const csvContent = [headers, ...csvData]
+          .map(row => row.map(field => `"${field}"`).join(","))
+          .join("\n")
+        
+        const blob = new Blob([csvContent], { type: "text/csv" })
+        const url = URL.createObjectURL(blob)
+        const link = document.createElement("a")
+        link.href = url
+        link.download = `quiz-results-summary-${new Date().toISOString().split('T')[0]}.csv`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(url)
+      } else {
+        // Export detailed data for specific module
+        try {
+          const detailedData = await fetchDetailedResults(filteredResults)
+          const headers = [
+            "User ID",
+            "Module",
+            "Score (%)",
+            "Correct Answers",
+            "Total Questions",
+            "Submitted At",
+            "Question Number",
+            "Question Text",
+            "Selected Answer",
+            "Is Correct",
+            "Time Spent (seconds)",
+            "Explanation"
+          ]
+          
+          const csvData = detailedData.flatMap(result => 
+            result.answers.map((answer, index) => [
+              result.user_id,
+              result.module_title,
+              Math.round(result.score).toString(),
+              result.correct_answers.toString(),
+              result.total_questions.toString(),
+              new Date(result.submitted_at).toLocaleString(),
+              (index + 1).toString(),
+              answer.exercises?.question || "N/A",
+              answer.alternatives?.content || "N/A",
+              answer.is_correct ? "Yes" : "No",
+              answer.time_spent_seconds.toString(),
+              answer.alternatives?.explanation || ""
+            ])
+          )
+          
+          const csvContent = [headers, ...csvData]
+            .map(row => row.map(field => `"${field}"`).join(","))
+            .join("\n")
+          
+          const blob = new Blob([csvContent], { type: "text/csv" })
+          const url = URL.createObjectURL(blob)
+          const link = document.createElement("a")
+          link.href = url
+          link.download = `quiz-results-detailed-${modules.find(m => m.id === selectedModuleId)?.title?.replace(/[^a-zA-Z0-9]/g, '-') || 'module'}-${new Date().toISOString().split('T')[0]}.csv`
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+          URL.revokeObjectURL(url)
+        } catch (error) {
+          console.error("Error generating detailed CSV:", error)
+          alert("Error generating detailed CSV. Please try again.")
+        }
+      }
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  // Fetch detailed results with exam answers
+  const fetchDetailedResults = async (results: ResultWithModule[]) => {
+    const detailedResults = await Promise.all(
+      results.map(async (result) => {
+        try {
+          const response = await fetch(`/api/results/${result.id}/detailed`)
+          if (!response.ok) {
+            throw new Error(`Failed to fetch details for result ${result.id}`)
+          }
+          const data = await response.json()
+          return {
+            ...result,
+            answers: data.answers || []
+          }
+        } catch (error) {
+          console.error(`Error fetching details for result ${result.id}:`, error)
+          return {
+            ...result,
+            answers: []
+          }
+        }
+      })
+    )
+    return detailedResults
+  }
 
   return (
     <>
       <Card className="h-full border-gray-200/10 bg-transparent">
-        <CardHeader className="pb-3 border-b border-gray-200/10">
-          <CardTitle className="text-xl flex items-center gap-2 text-white">
-            <Trophy className="h-5 w-5 text-emerald-500" />
-            Latest Results
-          </CardTitle>
+        <CardHeader className="pb-4 border-b border-gray-200/10">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl flex items-center gap-2 text-white">
+                <Trophy className="h-5 w-5 text-emerald-500" />
+                Latest Results
+              </CardTitle>
+              <Button
+                onClick={generateCSV}
+                size="sm"
+                className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-xs px-3 py-1.5 h-8"
+                disabled={filteredResults.length === 0 || isExporting}
+              >
+                <Download className="h-3.5 w-3.5" />
+                {isExporting 
+                  ? "Exporting..." 
+                  : selectedModuleId === "all" 
+                    ? "Summary" 
+                    : "Detailed"
+                }
+              </Button>
+            </div>
+          
+            {/* Module Filter */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm text-gray-400">
+                <Filter className="h-4 w-4" />
+                Filter by Module
+              </div>
+              <p className="text-xs text-gray-500 leading-relaxed">
+                {selectedModuleId === "all" 
+                  ? "Summary export: Basic results for all modules" 
+                  : "Detailed export: Includes individual question answers and explanations"
+                }
+              </p>
+              <Select value={selectedModuleId} onValueChange={setSelectedModuleId}>
+                <SelectTrigger className="bg-[#1a1a1a] border-gray-200/10 text-white h-9">
+                  <SelectValue placeholder="All modules" />
+                </SelectTrigger>
+                <SelectContent className="bg-[#1a1a1a] border-gray-200/10">
+                  <SelectItem value="all" className="text-white focus:bg-gray-800">
+                    All modules ({results.length})
+                  </SelectItem>
+                  {modules.map((module) => {
+                    const moduleResultCount = results.filter(r => r.module_id === module.id).length
+                    return (
+                      <SelectItem 
+                        key={module.id} 
+                        value={module.id}
+                        className="text-white focus:bg-gray-800"
+                      >
+                        {module.title} ({moduleResultCount})
+                      </SelectItem>
+                    )
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
-          <ScrollArea className="h-[calc(100vh-200px)]">
-            {results.length === 0 ? (
+          <ScrollArea className="h-[calc(100vh-280px)]">
+            {filteredResults.length === 0 ? (
               <div className="p-6 text-center">
-                <p className="text-sm text-gray-400">No exam results yet.</p>
+                <p className="text-sm text-gray-400">
+                  {selectedModuleId === "all" 
+                    ? "No exam results yet." 
+                    : "No results for this module."}
+                </p>
                 <p className="text-xs mt-2 text-gray-500">
-                  Results will appear here when users complete exams.
+                  {selectedModuleId === "all"
+                    ? "Results will appear here when users complete exams."
+                    : "Try selecting a different module or view all results."}
                 </p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-800">
-                {results.map((result) => (
+              <div className="divide-y divide-gray-200/10">
+                {filteredResults.map((result) => (
                   <button
                     key={result.id}
                     onClick={() => setSelectedResultId(result.id)}
