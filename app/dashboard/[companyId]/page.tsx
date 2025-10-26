@@ -3,6 +3,7 @@ import { whopsdk } from "@/lib/whop-sdk";
 import { DashboardNavbar } from "@/components/dashboard-navbar";
 import { ModulesSection } from "@/components/modules-section";
 import { MemberModulesView } from "@/components/member-modules-view";
+import { ResultsSidebar } from "@/components/results-sidebar";
 import { DebugAccess } from "@/components/debug-access";
 
 export default async function DashboardPage({
@@ -39,14 +40,25 @@ export default async function DashboardPage({
 	return (
 		<div className="min-h-screen bg-background">
 			<DashboardNavbar companyName={companyName} />
-			<main className="container mx-auto p-6">
-				<DebugAccess access={access} company={company} user={user} />
-				{isAdmin ? (
-					<ModulesSection companyId={companyId} />
-				) : (
+			<DebugAccess access={access} company={company} user={user} />
+			
+			{isAdmin ? (
+				<div className="flex">
+					{/* Main Content */}
+					<main className="flex-1 container mx-auto p-6">
+						<ModulesSection companyId={companyId} />
+					</main>
+					
+					{/* Sidebar */}
+					<aside className="w-96 p-6 border-l">
+						<ResultsSidebar companyId={companyId} />
+					</aside>
+				</div>
+			) : (
+				<main className="container mx-auto p-6">
 					<MemberModulesView companyId={companyId} userId={userId} />
-				)}
-			</main>
+				</main>
+			)}
 		</div>
 	);
 }

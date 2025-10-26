@@ -180,6 +180,53 @@ export async function getResultsByModule(moduleId: string): Promise<Result[]> {
   }
 }
 
+export type ResultWithModule = Result & {
+  module_title: string
+}
+
+export async function getRecentResults(
+  companyId: string,
+  limit: number = 10
+): Promise<ResultWithModule[]> {
+  try {
+    const { data, error } = await supabase
+      .from("results")
+      .select(`
+        *,
+        modules!inner (
+          title,
+          company_id
+        )
+      `)
+      .eq("modules.company_id", companyId)
+      .order("submitted_at", { ascending: false })
+      .limit(limit)
+
+    if (error) {
+      console.error("Error fetching recent results:", error)
+      return []
+    }
+
+    // Transform the data to flatten the module information
+    const results = data?.map((item: any) => ({
+      id: item.id,
+      user_id: item.user_id,
+      module_id: item.module_id,
+      score: item.score,
+      total_questions: item.total_questions,
+      correct_answers: item.correct_answers,
+      submitted_at: item.submitted_at,
+      created_at: item.created_at,
+      module_title: item.modules?.title || "Unknown Module",
+    })) || []
+
+    return results
+  } catch (error) {
+    console.error("Error fetching recent results:", error)
+    return []
+  }
+}
+
 export async function getExamAnswers(resultId: string): Promise<ExamAnswer[]> {
   try {
     const { data, error } = await supabase
