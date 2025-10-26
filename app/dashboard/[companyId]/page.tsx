@@ -12,8 +12,13 @@ export default async function DashboardPage({
 }) {
 	const { companyId } = await params;
 	
+	// Get headers for debugging
+	const headersList = await headers();
+	console.log("Headers:", Object.fromEntries(headersList.entries()));
+	
 	// Ensure the user is logged in on whop
-	const { userId } = await whopsdk.verifyUserToken(await headers());
+	const { userId } = await whopsdk.verifyUserToken(headersList);
+	console.log("Verified User ID:", userId);
 
 	// Fetch the necessary data from whop
 	const [company, user, access] = await Promise.all([
@@ -22,10 +27,9 @@ export default async function DashboardPage({
 		whopsdk.users.checkAccess(companyId, { id: userId }),
 	]);
 
-
-	console.log(company);
-	console.log(user);
-	console.log(access);
+	console.log("Company:", company);
+	console.log("User:", user);
+	console.log("Access:", access);
 	// Get company name, fallback to ID if name is not available
 	const companyName = (company as any).name || (company as any).title || companyId;
 
@@ -36,7 +40,7 @@ export default async function DashboardPage({
 		<div className="min-h-screen bg-background">
 			<DashboardNavbar companyName={companyName} />
 			<main className="container mx-auto p-6">
-				{/* <DebugAccess access={access} company={company} user={user} /> */}
+				<DebugAccess access={access} company={company} user={user} />
 				{isAdmin ? (
 					<ModulesSection companyId={companyId} />
 				) : (
@@ -48,8 +52,28 @@ export default async function DashboardPage({
 }
 
 function checkUserIsAdmin(userId: string, company: any, access: any): boolean {
-	if(access.access_level === "admin") {
+	console.log("Checking admin status for user:", userId);
+	console.log("Company owner ID:", company?.owner_user?.id);
+	console.log("Access data:", access);
+	
+	// Check if user is the company owner
+	if (company?.owner_user?.id === userId) {
+		console.log("User is company owner - granting admin access");
 		return true;
 	}
+	
+	// Check access level
+	if (access?.access_level === "admin") {
+		console.log("User has admin access level - granting admin access");
+		return true;
+	}
+	
+	// Check if user has access
+	if (access?.has_access === true) {
+		console.log("User has access but not admin level - member view");
+		return false;
+	}
+	
+	console.log("User has no access - member view");
 	return false;
 }

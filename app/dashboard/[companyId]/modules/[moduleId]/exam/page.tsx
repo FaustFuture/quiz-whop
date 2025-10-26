@@ -2,6 +2,9 @@ import { headers } from "next/headers"
 import { whopsdk } from "@/lib/whop-sdk"
 import { DashboardNavbar } from "@/components/dashboard-navbar"
 import { getModules } from "@/app/actions/modules"
+import { getExercises } from "@/app/actions/exercises"
+import { getAlternatives } from "@/app/actions/alternatives"
+import { ExamInterface } from "@/components/exam-interface"
 import { notFound } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
@@ -31,6 +34,20 @@ export default async function ExamPage({ params }: ExamPageProps) {
     notFound()
   }
 
+  // Fetch exercises for this module
+  const exercises = await getExercises(moduleId)
+
+  // Fetch alternatives for each exercise
+  const questionsWithAlternatives = await Promise.all(
+    exercises.map(async (exercise) => {
+      const alternatives = await getAlternatives(exercise.id)
+      return {
+        ...exercise,
+        alternatives
+      }
+    })
+  )
+
   return (
     <div className="min-h-screen bg-background">
       <DashboardNavbar companyName={companyName} />
@@ -44,32 +61,23 @@ export default async function ExamPage({ params }: ExamPageProps) {
             </Button>
           </Link>
           
-          <div className="text-center">
+          <div className="text-center mb-8">
             <h1 className="text-4xl font-bold tracking-tight mb-2">{module.title}</h1>
             {module.description && (
-              <p className="text-lg text-muted-foreground mb-8">
+              <p className="text-lg text-muted-foreground">
                 {module.description}
               </p>
             )}
           </div>
         </div>
 
-        {/* Exam Content */}
-        <div className="max-w-2xl mx-auto">
-          <div className="rounded-lg border border-dashed p-12 text-center">
-            <h2 className="text-2xl font-semibold mb-4">Exam Coming Soon</h2>
-            <p className="text-muted-foreground mb-6">
-              The exam functionality is currently under development. 
-              You'll be able to take quizzes and track your progress here.
-            </p>
-            <div className="space-y-2 text-sm text-muted-foreground">
-              <p>• Multiple choice questions</p>
-              <p>• Real-time scoring</p>
-              <p>• Progress tracking</p>
-              <p>• Results history</p>
-            </div>
-          </div>
-        </div>
+        {/* Exam Interface */}
+        <ExamInterface
+          questions={questionsWithAlternatives}
+          moduleTitle={module.title}
+          companyId={companyId}
+          moduleId={moduleId}
+        />
       </main>
     </div>
   )
