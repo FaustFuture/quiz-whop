@@ -6,6 +6,11 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [{ hostname: "**" }],
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '10mb',
+    },
+  },
 };
 
 export default withWhopAppConfig(nextConfig);

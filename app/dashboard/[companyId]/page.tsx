@@ -1,7 +1,9 @@
-import { Button } from "@whop/react/components";
 import { headers } from "next/headers";
-import Link from "next/link";
 import { whopsdk } from "@/lib/whop-sdk";
+import { DashboardNavbar } from "@/components/dashboard-navbar";
+import { ModulesSection } from "@/components/modules-section";
+import { MemberModulesView } from "@/components/member-modules-view";
+import { DebugAccess } from "@/components/debug-access";
 
 export default async function DashboardPage({
 	params,
@@ -9,52 +11,45 @@ export default async function DashboardPage({
 	params: Promise<{ companyId: string }>;
 }) {
 	const { companyId } = await params;
-	// Ensure the user is logged in on whop.
+	
+	// Ensure the user is logged in on whop
 	const { userId } = await whopsdk.verifyUserToken(await headers());
 
-	// Fetch the neccessary data we want from whop.
+	// Fetch the necessary data from whop
 	const [company, user, access] = await Promise.all([
 		whopsdk.companies.retrieve(companyId),
 		whopsdk.users.retrieve(userId),
 		whopsdk.users.checkAccess(companyId, { id: userId }),
 	]);
 
-	const displayName = user.name || `@${user.username}`;
+
+	console.log(company);
+	console.log(user);
+	console.log(access);
+	// Get company name, fallback to ID if name is not available
+	const companyName = (company as any).name || (company as any).title || companyId;
+
+	// Check if user is admin based on access data
+	const isAdmin = checkUserIsAdmin(userId, company, access);
 
 	return (
-		<div className="flex flex-col p-8 gap-4">
-			<div className="flex justify-between items-center gap-4">
-				<h1 className="text-9">
-					Hi <strong>{displayName}</strong>!
-				</h1>
-				<Link href="https://docs.whop.com/apps" target="_blank">
-					<Button variant="classic" className="w-full" size="3">
-						Developer Docs
-					</Button>
-				</Link>
-			</div>
-
-			<p className="text-3 text-gray-10">
-				Welcome to you whop app! Replace this template with your own app. To
-				get you started, here's some helpful data you can fetch from whop.
-			</p>
-
-			<h3 className="text-6 font-bold">Company data</h3>
-			<JsonViewer data={company} />
-
-			<h3 className="text-6 font-bold">User data</h3>
-			<JsonViewer data={user} />
-
-			<h3 className="text-6 font-bold">Access data</h3>
-			<JsonViewer data={access} />
+		<div className="min-h-screen bg-background">
+			<DashboardNavbar companyName={companyName} />
+			<main className="container mx-auto p-6">
+				<DebugAccess access={access} company={company} user={user} />
+				{isAdmin ? (
+					<ModulesSection companyId={companyId} />
+				) : (
+					<MemberModulesView companyId={companyId} />
+				)}
+			</main>
 		</div>
 	);
 }
 
-function JsonViewer({ data }: { data: any }) {
-	return (
-		<pre className="text-2 border border-gray-a4 rounded-lg p-4 bg-gray-a2 max-h-72 overflow-y-auto">
-			<code className="text-gray-10">{JSON.stringify(data, null, 2)}</code>
-		</pre>
-	);
+function checkUserIsAdmin(userId: string, company: any, access: any): boolean {
+	if(access.access_level === "admin") {
+		return true;
+	}
+	return false;
 }
