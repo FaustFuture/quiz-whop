@@ -27,6 +27,7 @@ interface ExamInterfaceProps {
   companyId: string
   moduleId: string
   userId: string
+  userName: string
 }
 
 interface AnswerRecord {
@@ -36,7 +37,7 @@ interface AnswerRecord {
   timeSpentSeconds: number
 }
 
-export function ExamInterface({ questions, moduleTitle, companyId, moduleId, userId }: ExamInterfaceProps) {
+export function ExamInterface({ questions, moduleTitle, companyId, moduleId, userId, userName }: ExamInterfaceProps) {
   const router = useRouter()
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState<AnswerRecord[]>([])
@@ -114,6 +115,7 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
       // Save to database
       const result = await saveExamResult(
         userId,
+        userName,
         moduleId,
         scorePercentage,
         totalQuestions,
@@ -135,7 +137,7 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
 
   const getAlternativeStyle = (alternativeId: string, isCorrect: boolean) => {
     if (!hasAnswered) {
-      return "border-gray-200 hover:border-primary cursor-pointer"
+      return "border-gray-200/10 hover:border-primary cursor-pointer"
     }
 
     if (alternativeId === selectedAlternativeId) {
@@ -151,7 +153,7 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
       return "border-green-500 bg-green-50 dark:bg-green-950"
     }
 
-    return "border-gray-200 opacity-50"
+    return "border-gray-200/10 opacity-50"
   }
 
   const getAlternativeIcon = (alternativeId: string, isCorrect: boolean) => {

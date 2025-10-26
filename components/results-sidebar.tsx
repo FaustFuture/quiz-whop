@@ -44,7 +44,7 @@ export function ResultsSidebar({ results, modules }: ResultsSidebarProps) {
         ]
         
         const csvData = filteredResults.map(result => [
-          result.user_id,
+          result.user_name || result.user_id,
           result.module_title,
           Math.round(result.score).toString(),
           result.correct_answers.toString(),
@@ -86,7 +86,7 @@ export function ResultsSidebar({ results, modules }: ResultsSidebarProps) {
           
           const csvData = detailedData.flatMap(result => 
             result.answers.map((answer, index) => [
-              result.user_id,
+              result.user_name || result.user_id,
               result.module_title,
               Math.round(result.score).toString(),
               result.correct_answers.toString(),
@@ -241,7 +241,7 @@ export function ResultsSidebar({ results, modules }: ResultsSidebarProps) {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-sm font-medium truncate text-gray-200">
-                            {result.user_id}
+                            {result.user_name || result.user_id}
                           </span>
                           <span
                             className={`px-1.5 py-0.5 rounded text-xs font-semibold ${

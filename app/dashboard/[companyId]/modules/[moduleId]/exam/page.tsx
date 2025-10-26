@@ -20,11 +20,17 @@ export default async function ExamPage({ params }: ExamPageProps) {
   // Ensure the user is logged in on whop
   const { userId } = await whopsdk.verifyUserToken(await headers())
 
-  // Fetch the company data
-  const company = await whopsdk.companies.retrieve(companyId)
+  // Fetch the company and user data
+  const [company, user] = await Promise.all([
+    whopsdk.companies.retrieve(companyId),
+    whopsdk.users.retrieve(userId)
+  ])
   
   // Get company name, fallback to ID if name is not available
   const companyName = (company as any).name || (company as any).title || companyId
+  
+  // Get user name, fallback to ID if name is not available
+  const userName = (user as any).name || (user as any).username || (user as any).email || userId
 
   // Get modules to find the current module
   const modules = await getModules(companyId)
@@ -78,6 +84,7 @@ export default async function ExamPage({ params }: ExamPageProps) {
           companyId={companyId}
           moduleId={moduleId}
           userId={userId}
+          userName={userName}
         />
       </main>
     </div>

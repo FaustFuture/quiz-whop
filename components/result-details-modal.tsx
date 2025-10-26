@@ -73,8 +73,8 @@ export function ResultDetailsModal({ resultId, open, onClose }: ResultDetailsMod
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-400">User ID</p>
-                      <p className="font-medium text-gray-200">{data.result.user_id}</p>
+                      <p className="text-sm text-gray-400">User</p>
+                      <p className="font-medium text-gray-200">{data.result.user_name || data.result.user_id}</p>
                     </div>
                     <div
                       className={`px-4 py-2 rounded-lg text-2xl font-bold ${

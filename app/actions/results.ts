@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache"
 export type Result = {
   id: string
   user_id: string
+  user_name: string | null
   module_id: string
   score: number
   total_questions: number
@@ -33,6 +34,7 @@ export type AnswerSubmission = {
 
 export async function saveExamResult(
   userId: string,
+  userName: string,
   moduleId: string,
   score: number,
   totalQuestions: number,
@@ -69,6 +71,7 @@ export async function saveExamResult(
       .from("results")
       .insert({
         user_id: userId,
+        user_name: userName,
         module_id: moduleId,
         score,
         total_questions: totalQuestions,
