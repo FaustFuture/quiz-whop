@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Check, X, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -14,6 +14,7 @@ import {
 import { Progress } from "@/components/ui/progress"
 import { type Exercise } from "@/app/actions/exercises"
 import { type Alternative } from "@/app/actions/alternatives"
+import { saveExamResult, type AnswerSubmission } from "@/app/actions/results"
 import Image from "next/image"
 
 interface ExamQuestion extends Exercise {
@@ -25,26 +26,30 @@ interface ExamInterfaceProps {
   moduleTitle: string
   companyId: string
   moduleId: string
+  userId: string
 }
 
 interface AnswerRecord {
   questionId: string
   selectedAlternativeId: string
   isCorrect: boolean
+  timeSpentSeconds: number
 }
 
-export function ExamInterface({ questions, moduleTitle, companyId, moduleId }: ExamInterfaceProps) {
+export function ExamInterface({ questions, moduleTitle, companyId, moduleId, userId }: ExamInterfaceProps) {
   const router = useRouter()
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState<AnswerRecord[]>([])
   const [selectedAlternativeId, setSelectedAlternativeId] = useState<string | null>(null)
   const [hasAnswered, setHasAnswered] = useState(false)
   const [showResults, setShowResults] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const questionStartTime = useRef<number>(Date.now())
 
   const currentQuestion = questions[currentQuestionIndex]
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100
 
-  // Check if this question has already been answered
+  // Check if this question has already been answered and reset timer
   useEffect(() => {
     const existingAnswer = answers.find(a => a.questionId === currentQuestion.id)
     if (existingAnswer) {
@@ -53,6 +58,8 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId }: E
     } else {
       setSelectedAlternativeId(null)
       setHasAnswered(false)
+      // Reset timer for new question
+      questionStartTime.current = Date.now()
     }
   }, [currentQuestionIndex, answers, currentQuestion.id])
 
@@ -66,23 +73,59 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId }: E
     const selectedAlternative = currentQuestion.alternatives.find(a => a.id === alternativeId)
     if (!selectedAlternative) return
 
+    // Calculate time spent on this question
+    const timeSpent = Math.floor((Date.now() - questionStartTime.current) / 1000)
+
     // Mark as answered and save the answer
     setHasAnswered(true)
     
     const newAnswer: AnswerRecord = {
       questionId: currentQuestion.id,
       selectedAlternativeId: alternativeId,
-      isCorrect: selectedAlternative.is_correct
+      isCorrect: selectedAlternative.is_correct,
+      timeSpentSeconds: timeSpent
     }
 
     setAnswers(prev => [...prev, newAnswer])
   }
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1)
     } else {
-      // Show results
+      // Last question - save results to database
+      setIsSaving(true)
+      
+      const correctAnswers = answers.filter(a => a.isCorrect).length + (hasAnswered && currentQuestion.alternatives.find(a => a.id === selectedAlternativeId)?.is_correct ? 1 : 0)
+      const totalQuestions = questions.length
+      const scorePercentage = (correctAnswers / totalQuestions) * 100
+      
+      // Prepare answers for database
+      const answerSubmissions: AnswerSubmission[] = answers.map(answer => ({
+        exerciseId: answer.questionId,
+        selectedAlternativeId: answer.selectedAlternativeId,
+        isCorrect: answer.isCorrect,
+        timeSpentSeconds: answer.timeSpentSeconds
+      }))
+      
+      // Save to database
+      const result = await saveExamResult(
+        userId,
+        moduleId,
+        scorePercentage,
+        totalQuestions,
+        correctAnswers,
+        answerSubmissions
+      )
+      
+      if (result.success) {
+        console.log("Exam results saved successfully!")
+      } else {
+        console.error("Failed to save exam results:", result.error)
+        // Still show results even if save fails
+      }
+      
+      setIsSaving(false)
       setShowResults(true)
     }
   }
@@ -295,11 +338,16 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId }: E
           </div>
           <Button
             onClick={handleNext}
-            disabled={!hasAnswered}
+            disabled={!hasAnswered || isSaving}
             className="gap-2"
           >
-            {currentQuestionIndex < questions.length - 1 ? "Next Question" : "View Results"}
-            <ChevronRight className="h-4 w-4" />
+            {isSaving ? (
+              "Saving Results..."
+            ) : currentQuestionIndex < questions.length - 1 ? (
+              <>Next Question <ChevronRight className="h-4 w-4" /></>
+            ) : (
+              <>View Results <ChevronRight className="h-4 w-4" /></>
+            )}
           </Button>
         </CardFooter>
       </Card>

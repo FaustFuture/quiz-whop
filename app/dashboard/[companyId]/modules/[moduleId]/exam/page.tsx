@@ -77,6 +77,7 @@ export default async function ExamPage({ params }: ExamPageProps) {
           moduleTitle={module.title}
           companyId={companyId}
           moduleId={moduleId}
+          userId={userId}
         />
       </main>
     </div>
