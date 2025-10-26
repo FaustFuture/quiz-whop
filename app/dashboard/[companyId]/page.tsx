@@ -51,7 +51,7 @@ export default async function DashboardPage({
 		<div className="min-h-screen bg-[#0a0a0a]">
 			{/* Custom Header */}
 			<header className="border-b border-gray-200/10 bg-[#0f0f0f]">
-				<div className="container mx-auto px-6 h-16 flex items-center justify-between">
+				<div className="mx-auto px-8 h-16 flex items-center justify-between">
 					<div className="flex items-center gap-3">
 						<div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center">
 							<span className="text-white font-bold text-sm">Q</span>

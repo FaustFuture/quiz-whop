@@ -182,7 +182,7 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
 
     return (
       <div className="max-w-2xl mx-auto">
-        <Card>
+        <Card className="border-gray-200/10">
           <CardHeader>
             <CardTitle className="text-3xl text-center">Exam Results</CardTitle>
           </CardHeader>
