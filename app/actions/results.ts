@@ -40,7 +40,31 @@ export async function saveExamResult(
   answers: AnswerSubmission[]
 ) {
   try {
-    // First, create the result record
+    // First, delete any existing results for this user and module
+    // This ensures only the latest attempt is kept (overwrite behavior)
+    const { data: existingResults } = await supabase
+      .from("results")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("module_id", moduleId)
+
+    if (existingResults && existingResults.length > 0) {
+      // Delete exam_answers for existing results (will cascade delete via FK)
+      const resultIds = existingResults.map(r => r.id)
+      await supabase
+        .from("exam_answers")
+        .delete()
+        .in("result_id", resultIds)
+      
+      // Delete old results
+      await supabase
+        .from("results")
+        .delete()
+        .eq("user_id", userId)
+        .eq("module_id", moduleId)
+    }
+
+    // Create the new result record
     const { data: result, error: resultError } = await supabase
       .from("results")
       .insert({
@@ -78,7 +102,7 @@ export async function saveExamResult(
       return { success: false, error: answersError.message }
     }
 
-    revalidatePath(`/dashboard/[companyId]/modules/[moduleId]`, "page")
+    revalidatePath(`/dashboard/[companyId]`, "page")
     return { success: true, data: result }
   } catch (error) {
     console.error("Error saving exam result:", error)
@@ -103,6 +127,36 @@ export async function getResultsByUser(userId: string): Promise<Result[]> {
   } catch (error) {
     console.error("Error fetching results:", error)
     return []
+  }
+}
+
+export async function getResultsByUserAndModule(
+  userId: string,
+  moduleId: string
+): Promise<Result | null> {
+  try {
+    const { data, error } = await supabase
+      .from("results")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("module_id", moduleId)
+      .order("submitted_at", { ascending: false })
+      .limit(1)
+      .single()
+
+    if (error) {
+      // If no results found, return null (not an error)
+      if (error.code === 'PGRST116') {
+        return null
+      }
+      console.error("Error fetching result:", error)
+      return null
+    }
+
+    return data
+  } catch (error) {
+    console.error("Error fetching result:", error)
+    return null
   }
 }
 

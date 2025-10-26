@@ -1,4 +1,5 @@
 import { getModules, type Module } from "@/app/actions/modules"
+import { getResultsByUserAndModule } from "@/app/actions/results"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -7,14 +8,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import { Play } from "lucide-react"
+import { Play, RotateCcw, Trophy } from "lucide-react"
 import Link from "next/link"
 
 interface MemberModulesViewProps {
   companyId: string
+  userId: string
 }
 
-export async function MemberModulesView({ companyId }: MemberModulesViewProps) {
+export async function MemberModulesView({ companyId, userId }: MemberModulesViewProps) {
   const modules = await getModules(companyId)
 
   return (
@@ -35,7 +37,12 @@ export async function MemberModulesView({ companyId }: MemberModulesViewProps) {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {modules.map((module) => (
-            <ModuleExamCard key={module.id} module={module} companyId={companyId} />
+            <ModuleExamCard 
+              key={module.id} 
+              module={module} 
+              companyId={companyId} 
+              userId={userId}
+            />
           ))}
         </div>
       )}
@@ -46,9 +53,14 @@ export async function MemberModulesView({ companyId }: MemberModulesViewProps) {
 interface ModuleExamCardProps {
   module: Module
   companyId: string
+  userId: string
 }
 
-function ModuleExamCard({ module, companyId }: ModuleExamCardProps) {
+async function ModuleExamCard({ module, companyId, userId }: ModuleExamCardProps) {
+  // Fetch the most recent result for this user and module
+  const result = await getResultsByUserAndModule(userId, module.id)
+  const hasResult = result !== null
+  
   return (
     <Card className="relative group hover:shadow-md transition-all">
       <CardHeader className="pb-3">
@@ -65,16 +77,52 @@ function ModuleExamCard({ module, companyId }: ModuleExamCardProps) {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>Created {new Date(module.created_at).toLocaleDateString()}</span>
-          </div>
-          
-          <Link href={`/dashboard/${companyId}/modules/${module.id}/exam`}>
-            <Button className="w-full gap-2">
-              <Play className="h-4 w-4" />
-              Take Exam
-            </Button>
-          </Link>
+          {hasResult ? (
+            <>
+              {/* Show previous result */}
+              <div className="rounded-lg bg-muted p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Previous Score
+                  </span>
+                  <Trophy className="h-4 w-4 text-yellow-500" />
+                </div>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-bold">
+                    {Math.round(result.score)}%
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    ({result.correct_answers}/{result.total_questions} correct)
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Taken {new Date(result.submitted_at).toLocaleDateString()}
+                </p>
+              </div>
+              
+              {/* Retake button */}
+              <Link href={`/dashboard/${companyId}/modules/${module.id}/exam`}>
+                <Button className="w-full gap-2" variant="outline">
+                  <RotateCcw className="h-4 w-4" />
+                  Retake Exam
+                </Button>
+              </Link>
+            </>
+          ) : (
+            <>
+              {/* No result yet - show take exam */}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>Created {new Date(module.created_at).toLocaleDateString()}</span>
+              </div>
+              
+              <Link href={`/dashboard/${companyId}/modules/${module.id}/exam`}>
+                <Button className="w-full gap-2">
+                  <Play className="h-4 w-4" />
+                  Take Exam
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -44,7 +44,7 @@ export default async function DashboardPage({
 				{isAdmin ? (
 					<ModulesSection companyId={companyId} />
 				) : (
-					<MemberModulesView companyId={companyId} />
+					<MemberModulesView companyId={companyId} userId={userId} />
 				)}
 			</main>
 		</div>
