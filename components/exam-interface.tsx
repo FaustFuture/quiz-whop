@@ -96,7 +96,9 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
       // Last question - save results to database
       setIsSaving(true)
       
-      const correctAnswers = answers.filter(a => a.isCorrect).length + (hasAnswered && currentQuestion.alternatives.find(a => a.id === selectedAlternativeId)?.is_correct ? 1 : 0)
+      // The current question's answer should already be in the answers array
+      // Calculate correct answers from all answers
+      const correctAnswers = answers.filter(a => a.isCorrect).length
       const totalQuestions = questions.length
       const scorePercentage = (correctAnswers / totalQuestions) * 100
       
@@ -119,7 +121,7 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
       )
       
       if (result.success) {
-        console.log("Exam results saved successfully!")
+        console.log("Exam results saved successfully!", result)
       } else {
         console.error("Failed to save exam results:", result.error)
         // Still show results even if save fails
