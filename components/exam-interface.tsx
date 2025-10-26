@@ -266,7 +266,7 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId }: E
                 <div className="flex-1">
                   <p className="font-medium">{alternative.content}</p>
                   {hasAnswered && alternative.explanation && (
-                    alternativeId === selectedAlternativeId || alternative.is_correct
+                    alternative.id === selectedAlternativeId || alternative.is_correct
                   ) && (
                     <p className="text-sm text-muted-foreground mt-2">
                       {alternative.explanation}
