@@ -36,7 +36,7 @@ export default async function DashboardPage({
 		<div className="min-h-screen bg-background">
 			<DashboardNavbar companyName={companyName} />
 			<main className="container mx-auto p-6">
-				<DebugAccess access={access} company={company} user={user} />
+				{/* <DebugAccess access={access} company={company} user={user} /> */}
 				{isAdmin ? (
 					<ModulesSection companyId={companyId} />
 				) : (
