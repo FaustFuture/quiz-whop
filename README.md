@@ -14,9 +14,24 @@ To run this project:
 
 3. Copy the environment variables from the `.env.development` into a `.env.local`. Ensure to use real values from the whop dashboard.
 
-4. Go to a whop created in the same org as the app you created. Navigate to the tools section and add your app.
+4. Set up Supabase (optional):
+   - Create a new project at [supabase.com](https://supabase.com)
+   - Add the following environment variables to your `.env.local`:
+     ```
+     NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+     NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+     ```
+   - Optionally add `SUPABASE_SERVICE_ROLE_KEY` for server-side operations
 
-5. Run `pnpm dev` to start the dev server. Then in the top right of the window find a translucent settings icon. Select "localhost". The default port 3000 should work.
+5. This project includes shadcn/ui components. You can add more components using:
+   ```bash
+   npx shadcn@latest add [component-name]
+   ```
+   Available components can be found at [ui.shadcn.com](https://ui.shadcn.com)
+
+6. Go to a whop created in the same org as the app you created. Navigate to the tools section and add your app.
+
+7. Run `pnpm dev` to start the dev server. Then in the top right of the window find a translucent settings icon. Select "localhost". The default port 3000 should work.
 
 ## Deploying
 
