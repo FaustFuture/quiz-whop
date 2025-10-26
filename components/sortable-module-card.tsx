@@ -80,7 +80,7 @@ export function SortableModuleCard({ module, companyId, isActive = false }: Sort
     <Card 
       ref={setNodeRef}
       style={style}
-      className={`relative group hover:shadow-md transition-shadow cursor-pointer hover:border-primary/50 w-80 h-48 ${
+      className={`relative group hover:shadow-xl transition-all cursor-pointer border-gray-200/10 bg-[#141414] hover:bg-[#1a1a1a] hover:border-emerald-500/50 w-80 h-48 ${
         isDragging ? 'opacity-50 z-50' : ''
       }`}
       onClick={handleCardClick}
@@ -88,9 +88,9 @@ export function SortableModuleCard({ module, companyId, isActive = false }: Sort
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
-            <CardTitle className="text-xl">{module.title}</CardTitle>
+            <CardTitle className="text-xl text-white">{module.title}</CardTitle>
             {module.description && (
-              <CardDescription className="mt-2 line-clamp-2">
+              <CardDescription className="mt-2 line-clamp-2 text-gray-400">
                 {module.description}
               </CardDescription>
             )}
@@ -100,7 +100,7 @@ export function SortableModuleCard({ module, companyId, isActive = false }: Sort
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
+              className="h-8 w-8 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-white hover:bg-gray-800"
               {...attributes}
               {...listeners}
               onClick={(e) => e.stopPropagation()}
@@ -115,7 +115,7 @@ export function SortableModuleCard({ module, companyId, isActive = false }: Sort
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-white hover:bg-gray-800"
                   disabled={isDeleting}
                   onClick={(e) => e.stopPropagation()}
                 >
@@ -123,9 +123,9 @@ export function SortableModuleCard({ module, companyId, isActive = false }: Sort
                   <span className="sr-only">Open menu</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="bg-[#1a1a1a] border-gray-800">
                 <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
+                  className="text-red-400 focus:text-red-400 focus:bg-red-500/10"
                   onClick={handleDelete}
                   disabled={isDeleting}
                 >
@@ -138,7 +138,7 @@ export function SortableModuleCard({ module, companyId, isActive = false }: Sort
         </div>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <div className="flex items-center gap-2 text-sm text-gray-500">
           <span>Created {new Date(module.created_at).toLocaleDateString()}</span>
         </div>
       </CardContent>

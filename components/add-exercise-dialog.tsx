@@ -63,23 +63,23 @@ export function AddExerciseDialog({ moduleId }: AddExerciseDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2">
+        <Button className="gap-2 bg-emerald-600 hover:bg-emerald-700">
           <Plus className="h-4 w-4" />
           Add Exercise
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] bg-[#141414] border-gray-200/10">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Create New Exercise</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-white">Create New Exercise</DialogTitle>
+            <DialogDescription className="text-gray-400">
               Add a new exercise to this module. The weight determines how many points this exercise is worth.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="question">
-                Question <span className="text-destructive">*</span>
+              <Label htmlFor="question" className="text-gray-300">
+                Question <span className="text-red-400">*</span>
               </Label>
               <Textarea
                 id="question"
@@ -89,20 +89,22 @@ export function AddExerciseDialog({ moduleId }: AddExerciseDialogProps) {
                 required
                 autoFocus
                 rows={3}
+                className="bg-[#1a1a1a] border-gray-200/10 text-white placeholder:text-gray-500"
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="imageUrl">Image URL (optional)</Label>
+              <Label htmlFor="imageUrl" className="text-gray-300">Image URL (optional)</Label>
               <Input
                 id="imageUrl"
                 placeholder="https://example.com/image.jpg"
                 value={imageUrl}
                 onChange={(e) => setImageUrl(e.target.value)}
                 type="url"
+                className="bg-[#1a1a1a] border-gray-200/10 text-white placeholder:text-gray-500"
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="weight">Weight (Points)</Label>
+              <Label htmlFor="weight" className="text-gray-300">Weight (Points)</Label>
               <Input
                 id="weight"
                 type="number"
@@ -110,9 +112,9 @@ export function AddExerciseDialog({ moduleId }: AddExerciseDialogProps) {
                 max="10"
                 value={weight}
                 onChange={(e) => setWeight(parseInt(e.target.value) || 1)}
-                className="w-24"
+                className="w-24 bg-[#1a1a1a] border-gray-200/10 text-white"
               />
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-gray-500">
                 How many points this exercise is worth (1-10)
               </p>
             </div>
@@ -123,10 +125,11 @@ export function AddExerciseDialog({ moduleId }: AddExerciseDialogProps) {
               variant="outline"
               onClick={() => setOpen(false)}
               disabled={isLoading}
+              className="bg-black border-gray-200/10 text-gray-400 hover:text-white hover:bg-gray-800"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading || !question.trim()}>
+            <Button type="submit" disabled={isLoading || !question.trim()} className="bg-emerald-600 hover:bg-emerald-700">
               {isLoading ? "Creating..." : "Create Exercise"}
             </Button>
           </DialogFooter>

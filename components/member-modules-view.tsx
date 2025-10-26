@@ -102,7 +102,7 @@ async function ModuleExamCard({ module, companyId, userId }: ModuleExamCardProps
               
               {/* Retake button */}
               <Link href={`/dashboard/${companyId}/modules/${module.id}/exam`}>
-                <Button className="w-full gap-2" variant="outline">
+                <Button className="w-full gap-2 bg-black border-gray-200/10 text-gray-400 hover:text-white hover:bg-gray-800 hover:border-emerald-500" variant="outline">
                   <RotateCcw className="h-4 w-4" />
                   Retake Exam
                 </Button>

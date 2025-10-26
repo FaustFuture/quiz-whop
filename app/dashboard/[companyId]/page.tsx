@@ -4,6 +4,7 @@ import { DashboardNavbar } from "@/components/dashboard-navbar";
 import { ModulesSection } from "@/components/modules-section";
 import { MemberModulesView } from "@/components/member-modules-view";
 import { ResultsSidebar } from "@/components/results-sidebar";
+import { getRecentResults } from "@/app/actions/results";
 import { DebugAccess } from "@/components/debug-access";
 
 export default async function DashboardPage({
@@ -37,25 +38,42 @@ export default async function DashboardPage({
 	// Check if user is admin based on access data
 	const isAdmin = checkUserIsAdmin(userId, company, access);
 
+	// Fetch recent results for admin sidebar
+	const recentResults = isAdmin ? await getRecentResults(companyId, 10) : [];
+
 	return (
-		<div className="min-h-screen bg-background">
-			<DashboardNavbar companyName={companyName} />
-			<DebugAccess access={access} company={company} user={user} />
+		<div className="min-h-screen bg-[#0a0a0a]">
+			{/* Custom Header */}
+			<header className="border-b border-gray-200/10 bg-[#0f0f0f]">
+				<div className="container mx-auto px-6 h-16 flex items-center justify-between">
+					<div className="flex items-center gap-3">
+						<div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center">
+							<span className="text-white font-bold text-sm">Q</span>
+						</div>
+						<h1 className="text-xl font-semibold text-white">{companyName}</h1>
+					</div>
+					<div className="flex items-center gap-4">
+						<span className="text-sm text-gray-400">{isAdmin ? "Admin" : "Member"}</span>
+					</div>
+				</div>
+			</header>
 			
 			{isAdmin ? (
-				<div className="flex">
+				<div className="flex min-h-[calc(100vh-4rem)]">
 					{/* Main Content */}
-					<main className="flex-1 container mx-auto p-6">
-						<ModulesSection companyId={companyId} />
+					<main className="flex-1 p-8">
+						<div className="max-w-7xl mx-auto">
+							<ModulesSection companyId={companyId} />
+						</div>
 					</main>
 					
 					{/* Sidebar */}
-					<aside className="w-96 p-6 border-l">
-						<ResultsSidebar companyId={companyId} />
+					<aside className="w-[400px] border-l border-gray-200/10 bg-[#0f0f0f] p-6">
+						<ResultsSidebar results={recentResults} />
 					</aside>
 				</div>
 			) : (
-				<main className="container mx-auto p-6">
+				<main className="container mx-auto p-8">
 					<MemberModulesView companyId={companyId} userId={userId} />
 				</main>
 			)}

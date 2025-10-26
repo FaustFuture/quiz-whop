@@ -61,23 +61,23 @@ export function AddModuleDialog({ companyId }: AddModuleDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2">
+        <Button className="gap-2 bg-emerald-600 hover:bg-emerald-700">
           <Plus className="h-4 w-4" />
           Add Module
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[525px]">
+      <DialogContent className="sm:max-w-[525px] bg-[#141414] border-gray-200/10">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Create New Module</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-white">Create New Module</DialogTitle>
+            <DialogDescription className="text-gray-400">
               Add a new quiz module. Fill in the title and description below.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="title">
-                Title <span className="text-destructive">*</span>
+              <Label htmlFor="title" className="text-gray-300">
+                Title <span className="text-red-400">*</span>
               </Label>
               <Input
                 id="title"
@@ -86,16 +86,18 @@ export function AddModuleDialog({ companyId }: AddModuleDialogProps) {
                 onChange={(e) => setTitle(e.target.value)}
                 required
                 autoFocus
+                className="bg-[#1a1a1a] border-gray-200/10 text-white placeholder:text-gray-500"
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="description">Description</Label>
+              <Label htmlFor="description" className="text-gray-300">Description</Label>
               <Textarea
                 id="description"
                 placeholder="Describe what this module covers..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
+                className="bg-[#1a1a1a] border-gray-200/10 text-white placeholder:text-gray-500"
               />
             </div>
           </div>
@@ -105,10 +107,11 @@ export function AddModuleDialog({ companyId }: AddModuleDialogProps) {
               variant="outline"
               onClick={() => setOpen(false)}
               disabled={isLoading}
+              className="bg-black border-gray-200/10 text-gray-400 hover:text-white hover:bg-gray-800"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading || !title.trim()}>
+            <Button type="submit" disabled={isLoading || !title.trim()} className="bg-emerald-600 hover:bg-emerald-700">
               {isLoading ? "Creating..." : "Create Module"}
             </Button>
           </DialogFooter>

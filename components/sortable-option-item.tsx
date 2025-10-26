@@ -125,19 +125,21 @@ export function SortableOptionItem({ option, exerciseId }: SortableOptionItemPro
 
   if (isEditing) {
     return (
-      <Card className="border-blue-500 bg-blue-50 dark:bg-blue-950">
+      <Card className="border-emerald-500 bg-emerald-500/10">
         <CardContent className="p-4">
           <div className="grid gap-3">
             <Input
               value={editedContent}
               onChange={(e) => setEditedContent(e.target.value)}
               placeholder="Option content"
+              className="bg-[#1a1a1a] border-gray-200/10 text-white"
               autoFocus
             />
             <Textarea
               value={editedExplanation}
               onChange={(e) => setEditedExplanation(e.target.value)}
               placeholder="Explanation (optional)"
+              className="bg-[#1a1a1a] border-gray-200/10 text-white"
               rows={2}
             />
             <div className="flex items-center space-x-2">
@@ -145,20 +147,21 @@ export function SortableOptionItem({ option, exerciseId }: SortableOptionItemPro
                 id={`edit-is-correct-${option.id}`}
                 checked={editedIsCorrect}
                 onCheckedChange={(checked) => setEditedIsCorrect(checked as boolean)}
+                className="border-gray-600 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
               />
               <label
                 htmlFor={`edit-is-correct-${option.id}`}
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-300"
               >
                 This is the correct answer
               </label>
             </div>
             <div className="flex gap-2">
-              <Button size="sm" onClick={handleSave} disabled={isSaving}>
+              <Button size="sm" onClick={handleSave} disabled={isSaving} className="bg-emerald-600 hover:bg-emerald-700">
                 <Check className="w-3 h-3 mr-1" />
                 {isSaving ? "Saving..." : "Save"}
               </Button>
-              <Button size="sm" variant="outline" onClick={handleCancel} disabled={isSaving}>
+              <Button size="sm" variant="outline" onClick={handleCancel} disabled={isSaving} className="bg-black border-gray-200/10 text-gray-400 hover:text-white hover:bg-gray-800">
                 <X className="w-3 h-3 mr-1" />
                 Cancel
               </Button>
@@ -173,7 +176,7 @@ export function SortableOptionItem({ option, exerciseId }: SortableOptionItemPro
     <Card 
       ref={setNodeRef}
       style={style}
-      className={`group ${option.is_correct ? 'border-green-500 bg-green-50 dark:bg-green-950' : 'border-gray-200'} ${
+      className={`group ${option.is_correct ? 'border-emerald-500/50 bg-emerald-500/10' : 'border-gray-200/10 bg-[#1a1a1a]'} ${
         isDragging ? 'opacity-50 z-50' : ''
       }`}
     >
@@ -184,12 +187,12 @@ export function SortableOptionItem({ option, exerciseId }: SortableOptionItemPro
               <Checkbox
                 checked={option.is_correct}
                 onCheckedChange={handleCorrectnessToggle}
-                className="data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
+                className="border-gray-600 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
               />
-              <span className="font-medium">{option.content}</span>
+              <span className="font-medium text-gray-200">{option.content}</span>
             </div>
             {option.explanation && (
-              <p className="text-sm text-muted-foreground ml-6">
+              <p className="text-sm text-gray-400 ml-6">
                 {option.explanation}
               </p>
             )}
@@ -199,7 +202,7 @@ export function SortableOptionItem({ option, exerciseId }: SortableOptionItemPro
             <Button
               variant="ghost"
               size="icon"
-              className="h-6 w-6 cursor-grab active:cursor-grabbing opacity-60 hover:opacity-100 transition-opacity"
+              className="h-6 w-6 cursor-grab active:cursor-grabbing opacity-60 hover:opacity-100 transition-opacity text-gray-500 hover:text-gray-300"
               {...attributes}
               {...listeners}
             >
@@ -213,20 +216,20 @@ export function SortableOptionItem({ option, exerciseId }: SortableOptionItemPro
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6"
+                  className="h-6 w-6 text-gray-500 hover:text-gray-300 hover:bg-gray-800"
                   disabled={isDeleting}
                 >
                   <MoreVertical className="h-3 w-3" />
                   <span className="sr-only">Open menu</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => setIsEditing(true)}>
+              <DropdownMenuContent align="end" className="bg-[#1a1a1a] border-gray-200/10">
+                <DropdownMenuItem onClick={() => setIsEditing(true)} className="text-gray-300 focus:bg-gray-800 focus:text-white">
                   <Edit className="mr-2 h-3 w-3" />
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
+                  className="text-red-400 focus:text-red-400 focus:bg-red-500/10"
                   onClick={handleDelete}
                   disabled={isDeleting}
                 >

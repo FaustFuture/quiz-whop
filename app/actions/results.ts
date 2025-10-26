@@ -249,44 +249,59 @@ export async function getExamAnswers(resultId: string): Promise<ExamAnswer[]> {
 
 export async function getResultWithAnswers(resultId: string) {
   try {
-    const [result, answers] = await Promise.all([
-      supabase.from("results").select("*").eq("id", resultId).single(),
-      supabase
-        .from("exam_answers")
-        .select(`
-          *,
-          exercises:exercise_id (
-            id,
-            question,
-            image_url,
-            weight
-          ),
-          alternatives:selected_alternative_id (
-            id,
-            content,
-            is_correct,
-            explanation
-          )
-        `)
-        .eq("result_id", resultId)
-        .order("created_at", { ascending: true }),
-    ])
+    // First get the result
+    const { data: result, error: resultError } = await supabase
+      .from("results")
+      .select("*")
+      .eq("id", resultId)
+      .single()
 
-    if (result.error) {
-      console.error("Error fetching result:", result.error)
-      return { success: false, error: result.error.message }
+    if (resultError) {
+      console.error("Error fetching result:", resultError)
+      return { success: false, error: resultError.message }
     }
 
-    if (answers.error) {
-      console.error("Error fetching answers:", answers.error)
-      return { success: false, error: answers.error.message }
+    // Then get exam_answers
+    const { data: examAnswers, error: answersError } = await supabase
+      .from("exam_answers")
+      .select("*")
+      .eq("result_id", resultId)
+      .order("created_at", { ascending: true })
+
+    if (answersError) {
+      console.error("Error fetching exam answers:", answersError)
+      return { success: false, error: answersError.message }
     }
+
+    // Now fetch exercises and alternatives separately for each answer
+    const answersWithDetails = await Promise.all(
+      examAnswers.map(async (answer) => {
+        const [exercise, alternative] = await Promise.all([
+          supabase
+            .from("exercises")
+            .select("id, question, image_url, weight")
+            .eq("id", answer.exercise_id)
+            .single(),
+          supabase
+            .from("alternatives")
+            .select("id, content, is_correct, explanation")
+            .eq("id", answer.selected_alternative_id)
+            .single(),
+        ])
+
+        return {
+          ...answer,
+          exercises: exercise.data,
+          alternatives: alternative.data,
+        }
+      })
+    )
 
     return {
       success: true,
       data: {
-        result: result.data,
-        answers: answers.data,
+        result: result,
+        answers: answersWithDetails,
       },
     }
   } catch (error) {

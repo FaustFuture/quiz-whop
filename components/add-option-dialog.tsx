@@ -90,23 +90,23 @@ export function AddOptionDialog({ exerciseId }: AddOptionDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button variant="outline" size="sm" className="gap-2 bg-black border-gray-200/10 text-gray-400 hover:text-white hover:bg-gray-800 hover:border-emerald-500">
           <Plus className="h-4 w-4" />
           Add Option
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] bg-[#141414] border-gray-200/10">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>Add New Option</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-white">Add New Option</DialogTitle>
+            <DialogDescription className="text-gray-400">
               Add a new answer option for this exercise. {existingAlternatives.length === 0 ? "This will be marked as correct by default since it's the first option." : "Mark it as correct if it's the right answer."}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="content">
-                Option Content <span className="text-destructive">*</span>
+              <Label htmlFor="content" className="text-gray-300">
+                Option Content <span className="text-red-400">*</span>
               </Label>
               <Input
                 id="content"
@@ -115,6 +115,7 @@ export function AddOptionDialog({ exerciseId }: AddOptionDialogProps) {
                 onChange={(e) => setContent(e.target.value)}
                 required
                 autoFocus
+                className="bg-[#1a1a1a] border-gray-200/10 text-white placeholder:text-gray-500"
               />
             </div>
             
@@ -124,8 +125,9 @@ export function AddOptionDialog({ exerciseId }: AddOptionDialogProps) {
                 checked={isCorrect}
                 onCheckedChange={(checked) => setIsCorrect(checked as boolean)}
                 disabled={existingAlternatives.length === 0 || !hasCorrectAlternative}
+                className="border-gray-600 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
               />
-              <Label htmlFor="is-correct" className="text-sm font-medium">
+              <Label htmlFor="is-correct" className="text-sm font-medium text-gray-300">
                 {existingAlternatives.length === 0 || !hasCorrectAlternative 
                   ? "This is the correct answer (required for first option)" 
                   : "This is the correct answer"}
@@ -133,13 +135,14 @@ export function AddOptionDialog({ exerciseId }: AddOptionDialogProps) {
             </div>
             
             <div className="grid gap-2">
-              <Label htmlFor="explanation">Explanation (optional)</Label>
+              <Label htmlFor="explanation" className="text-gray-300">Explanation (optional)</Label>
               <Textarea
                 id="explanation"
                 placeholder="Explain why this option is correct or incorrect..."
                 value={explanation}
                 onChange={(e) => setExplanation(e.target.value)}
                 rows={3}
+                className="bg-[#1a1a1a] border-gray-200/10 text-white placeholder:text-gray-500"
               />
             </div>
           </div>
@@ -149,10 +152,11 @@ export function AddOptionDialog({ exerciseId }: AddOptionDialogProps) {
               variant="outline"
               onClick={() => setOpen(false)}
               disabled={isLoading}
+              className="bg-black border-gray-200/10 text-gray-400 hover:text-white hover:bg-gray-800"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isLoading || !content.trim()}>
+            <Button type="submit" disabled={isLoading || !content.trim()} className="bg-emerald-600 hover:bg-emerald-700">
               {isLoading ? "Adding..." : "Add Option"}
             </Button>
           </DialogFooter>
