@@ -62,7 +62,7 @@ async function ModuleExamCard({ module, companyId, userId }: ModuleExamCardProps
   const hasResult = result !== null
   
   return (
-    <Card className="relative group hover:shadow-xl transition-all border-gray-200/10 bg-[#141414] hover:bg-[#1a1a1a] hover:border-emerald-500/50">
+    <Card className="relative group hover:shadow-xl transition-all border-gray-200/10 bg-[#141414] hover:bg-[#1a1a1a] hover:border-emerald-500/50 flex flex-col">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
@@ -75,57 +75,55 @@ async function ModuleExamCard({ module, companyId, userId }: ModuleExamCardProps
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {hasResult ? (
-            <>
-              {/* Show previous result */}
-              <div className="rounded-xl bg-[#1a1a1a] border border-gray-200/10 p-5 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-gray-400">
-                    Previous Score
-                  </span>
-                  <Trophy className="h-5 w-5 text-emerald-500" />
-                </div>
-                <div className="flex items-baseline gap-2">
-                  <span className={`text-4xl font-bold ${
-                    result.score >= 70 ? 'text-emerald-400' : 'text-red-400'
-                  }`}>
-                    {Math.round(result.score)}%
-                  </span>
-                  <span className="text-sm text-gray-500">
-                    ({result.correct_answers}/{result.total_questions} correct)
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500">
-                  Taken {new Date(result.submitted_at).toLocaleDateString()}
-                </p>
+      <CardContent className="flex-1 flex flex-col">
+        {hasResult ? (
+          <div className="space-y-6 flex flex-col flex-1">
+            {/* Show previous result */}
+            <div className="rounded-xl bg-[#1a1a1a] border border-gray-200/10 p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-gray-400">
+                  Previous Score
+                </span>
+                <Trophy className="h-5 w-5 text-emerald-500" />
               </div>
-              
-              {/* Retake button */}
-              <Link href={`/dashboard/${companyId}/modules/${module.id}/exam`}>
-                <Button className="w-full gap-2 bg-black border-gray-200/10 text-gray-400 hover:text-white hover:bg-gray-800 hover:border-emerald-500" variant="outline">
-                  <RotateCcw className="h-4 w-4" />
-                  Retake Exam
-                </Button>
-              </Link>
-            </>
-          ) : (
-            <>
-              {/* No result yet - show take exam */}
-              <div className="flex items-center gap-2 text-sm text-gray-500 py-2">
-                <span>Created {new Date(module.created_at).toLocaleDateString()}</span>
+              <div className="flex items-baseline gap-2">
+                <span className={`text-4xl font-bold ${
+                  result.score >= 70 ? 'text-emerald-400' : 'text-red-400'
+                }`}>
+                  {Math.round(result.score)}%
+                </span>
+                <span className="text-sm text-gray-500">
+                  ({result.correct_answers}/{result.total_questions} correct)
+                </span>
               </div>
-              
-              <Link href={`/dashboard/${companyId}/modules/${module.id}/exam`}>
-                <Button className="w-full gap-2 bg-emerald-600 hover:bg-emerald-700">
-                  <Play className="h-4 w-4" />
-                  Take Exam
-                </Button>
-              </Link>
-            </>
-          )}
-        </div>
+              <p className="text-xs text-gray-500">
+                Taken {new Date(result.submitted_at).toLocaleDateString()}
+              </p>
+            </div>
+            
+            {/* Retake button */}
+            <Link href={`/dashboard/${companyId}/modules/${module.id}/exam`} className="mt-auto">
+              <Button className="w-full gap-2 bg-black border-gray-200/10 text-gray-400 hover:text-white hover:bg-gray-800 hover:border-emerald-500" variant="outline">
+                <RotateCcw className="h-4 w-4" />
+                Retake Exam
+              </Button>
+            </Link>
+          </div>
+        ) : (
+          <div className="flex flex-col flex-1">
+            {/* No result yet - show take exam */}
+            <div className="flex items-center gap-2 text-sm text-gray-500 py-2 mb-4">
+              <span>Created {new Date(module.created_at).toLocaleDateString()}</span>
+            </div>
+            
+            <Link href={`/dashboard/${companyId}/modules/${module.id}/exam`} className="mt-auto">
+              <Button className="w-full gap-2 bg-emerald-600 hover:bg-emerald-700">
+                <Play className="h-4 w-4" />
+                Take Exam
+              </Button>
+            </Link>
+          </div>
+        )}
       </CardContent>
     </Card>
   )
