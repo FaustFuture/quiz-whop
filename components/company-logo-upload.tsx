@@ -47,6 +47,10 @@ export function CompanyLogoUpload({
       
       if (result.success && result.url) {
         onLogoUpdate?.(result.url)
+        if (result.warning) {
+          console.warn(result.warning)
+          // You could show a toast notification here if you have one
+        }
       } else {
         console.error("Failed to upload logo:", result.error)
         alert("Failed to upload logo. Please try again.")
@@ -107,7 +111,6 @@ export function CompanyLogoUpload({
   return (
     <div className="flex items-center gap-3">
       {/* Debug info */}
-      <div className="text-xs text-gray-500">Logo Upload Component</div>
       
       {/* Logo Display/Upload Area */}
       <div 
@@ -130,14 +133,14 @@ export function CompanyLogoUpload({
             }}
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
-            <span className="text-white font-bold text-sm">Q</span>
+          <div className="w-full h-full bg-gray-600 flex items-center justify-center">
+            <Camera className="w-6 h-6 text-gray-400" />
           </div>
         )}
         
         {/* Fallback for broken images */}
-        <div className="hidden w-full h-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center">
-          <span className="text-white font-bold text-sm">Q</span>
+        <div className="hidden w-full h-full bg-gray-600 flex items-center justify-center">
+          <Camera className="w-6 h-6 text-gray-400" />
         </div>
 
         {/* Upload overlay */}

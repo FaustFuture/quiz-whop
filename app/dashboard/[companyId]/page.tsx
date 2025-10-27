@@ -1,14 +1,9 @@
 import { headers } from "next/headers";
 import { whopsdk } from "@/lib/whop-sdk";
-import { DashboardNavbar } from "@/components/dashboard-navbar";
-import { ModulesSection } from "@/components/modules-section";
-import { MemberModulesView } from "@/components/member-modules-view";
-import { ResultsSidebar } from "@/components/results-sidebar";
-import { CompanyLogoUpload } from "@/components/company-logo-upload";
-import { getRecentResults } from "@/app/actions/results";
+import { getRecentResults, getResultsByUserAndModule } from "@/app/actions/results";
 import { getModules } from "@/app/actions/modules";
 import { getCompany, createOrUpdateCompany } from "@/app/actions/company";
-import { DebugAccess } from "@/components/debug-access";
+import { DashboardWithToggle } from "@/components/dashboard-with-toggle";
 
 export default async function DashboardPage({
 	params,
@@ -69,61 +64,33 @@ export default async function DashboardPage({
 		])
 		: [[], []];
 
+	// Fetch user results for member view
+	let userResults = {};
+	if (!isAdmin) {
+		const modules = await getModules(companyId);
+		const results = await Promise.all(
+			modules.map(async (module) => {
+				const result = await getResultsByUserAndModule(userId, module.id);
+				return { moduleId: module.id, result };
+			})
+		);
+		userResults = results.reduce((acc, { moduleId, result }) => {
+			if (result) acc[moduleId] = result;
+			return acc;
+		}, {} as any);
+	}
+
 	return (
-		<div className="min-h-screen bg-[#0a0a0a]">
-			{/* Custom Header */}
-			<header className="border-b border-gray-200/10 bg-[#0f0f0f]">
-				<div className="mx-auto px-8 h-16 flex items-center justify-between">
-					{isAdmin ? (
-						<div className="flex items-center gap-3">
-							<CompanyLogoUpload 
-								companyId={companyId}
-								currentLogoUrl={companyData?.logo_url || null}
-								companyName={companyName}
-							/>
-						</div>
-					) : (
-						<div className="flex items-center gap-3">
-							{companyData?.logo_url ? (
-								<img
-									src={companyData.logo_url}
-									alt={`${companyName} logo`}
-									className="w-8 h-8 rounded-lg object-cover"
-								/>
-							) : (
-								<div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center">
-									<span className="text-white font-bold text-sm">Q</span>
-								</div>
-							)}
-							<h1 className="text-xl font-semibold text-white">{companyName}</h1>
-						</div>
-					)}
-					<div className="flex items-center gap-4">
-						<span className="text-sm text-gray-400">{isAdmin ? "Admin" : "Member"}</span>
-					</div>
-				</div>
-			</header>
-			
-			{isAdmin ? (
-				<div className="flex min-h-[calc(100vh-4rem)]">
-					{/* Main Content */}
-					<main className="flex-1 p-8">
-						<div className="max-w-7xl mx-auto">
-							<ModulesSection companyId={companyId} initialModules={modules} />
-						</div>
-					</main>
-					
-					{/* Sidebar */}
-					<aside className="w-[400px] border-l border-gray-200/10 bg-[#0f0f0f] p-6">
-						<ResultsSidebar results={recentResults} modules={modules} />
-					</aside>
-				</div>
-			) : (
-				<main className="container mx-auto p-8">
-					<MemberModulesView companyId={companyId} userId={userId} />
-				</main>
-			)}
-		</div>
+		<DashboardWithToggle
+			isAdmin={isAdmin}
+			companyId={companyId}
+			userId={userId}
+			companyName={companyName}
+			companyData={companyData}
+			recentResults={recentResults}
+			modules={modules}
+			userResults={userResults}
+		/>
 	);
 }
 
@@ -153,3 +120,4 @@ function checkUserIsAdmin(userId: string, company: any, access: any): boolean {
 	console.log("User has no access - member view");
 	return false;
 }
+

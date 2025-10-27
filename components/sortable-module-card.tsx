@@ -13,12 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { type Module } from "@/app/actions/modules"
 import { deleteModule } from "@/app/actions/modules"
 
@@ -86,22 +80,22 @@ export function SortableModuleCard({ module, companyId, isActive = false, onModu
     <Card 
       ref={setNodeRef}
       style={style}
-      className={`relative group hover:shadow-xl transition-all cursor-pointer border-gray-200/10 bg-[#141414] hover:bg-[#1a1a1a] hover:border-emerald-500/50 w-full h-64 ${
+      className={`relative group hover:shadow-xl transition-all cursor-pointer border-gray-200/10 bg-[#141414] hover:bg-[#1a1a1a] hover:border-emerald-500/50 w-full h-64 flex flex-col ${
         isDragging ? 'opacity-50 z-50' : ''
       }`}
       onClick={handleCardClick}
     >
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-3 flex-1">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
-            <CardTitle className="text-2xl text-white">{module.title}</CardTitle>
+            <CardTitle className="text-lg text-white line-clamp-2">{module.title}</CardTitle>
             {module.description && (
-              <CardDescription className="mt-3 line-clamp-3 text-gray-400 text-base">
+              <CardDescription className="mt-2 line-clamp-2 text-gray-400 text-sm">
                 {module.description}
               </CardDescription>
             )}
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex flex-col gap-1">
             {/* Drag Handle */}
             <Button
               variant="ghost"
@@ -115,36 +109,22 @@ export function SortableModuleCard({ module, companyId, isActive = false, onModu
               <span className="sr-only">Drag to reorder</span>
             </Button>
             
-            {/* More Options */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-white hover:bg-gray-800"
-                  disabled={isDeleting}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <MoreVertical className="h-4 w-4" />
-                  <span className="sr-only">Open menu</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-[#1a1a1a] border-gray-800">
-                <DropdownMenuItem
-                  className="text-red-400 focus:text-red-400 focus:bg-red-500/10"
-                  onClick={handleDelete}
-                  disabled={isDeleting}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  {isDeleting ? "Deleting..." : "Delete"}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            {/* Delete Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 hover:bg-red-500/10"
+              disabled={isDeleting}
+              onClick={handleDelete}
+            >
+              <Trash2 className="h-4 w-4" />
+              <span className="sr-only">Delete module</span>
+            </Button>
           </div>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="flex items-center gap-2 text-base text-gray-400">
+      <CardContent className="pt-0 pb-4">
+        <div className="flex items-center gap-2 text-xs text-gray-500">
           <span>Created {new Date(module.created_at).toLocaleDateString()}</span>
         </div>
       </CardContent>

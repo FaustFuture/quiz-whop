@@ -23,6 +23,11 @@ export async function getCompany(companyId: string): Promise<Company | null> {
       .single()
 
     if (error) {
+      // Check if it's a table not found error
+      if (error.code === 'PGRST116' || error.message?.includes('relation "companies" does not exist')) {
+        console.log("Companies table doesn't exist yet, returning null")
+        return null
+      }
       console.error("Error fetching company:", error)
       return null
     }
@@ -51,6 +56,11 @@ export async function createOrUpdateCompany(companyId: string, name: string, log
       .single()
 
     if (error) {
+      // Check if it's a table not found error
+      if (error.code === 'PGRST116' || error.message?.includes('relation "companies" does not exist')) {
+        console.log("Companies table doesn't exist yet, cannot create company record")
+        return { success: false, error: "Companies table not set up yet. Please run the SQL migration first." }
+      }
       console.error("Error creating/updating company:", error)
       return { success: false, error: error.message }
     }
@@ -99,6 +109,12 @@ export async function uploadCompanyLogo(companyId: string, file: File) {
     const updateResult = await updateCompanyLogo(companyId, uploadResult.url)
     
     if (!updateResult.success) {
+      // If it's a table not found error, we can still return the URL
+      // The logo will be uploaded but not saved to database
+      if (updateResult.error?.includes("Companies table not set up")) {
+        console.log("Logo uploaded but not saved to database - table not set up")
+        return { success: true, url: uploadResult.url, warning: "Logo uploaded but database not set up yet" }
+      }
       return { success: false, error: updateResult.error }
     }
 
