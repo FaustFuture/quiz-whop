@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Check, X, ChevronRight, Maximize2 } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -49,7 +50,22 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
   const questionStartTime = useRef<number>(Date.now())
 
   const currentQuestion = questions[currentQuestionIndex]
+  const [imageSize, setImageSize] = useState<"aspect-ratio" | "large" | "medium" | "small">(currentQuestion.image_display_size as "aspect-ratio" | "large" | "medium" | "small" || "aspect-ratio")
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100
+
+  const getImageHeightClass = () => {
+    switch (imageSize) {
+      case "large":
+        return "h-[50vh]"
+      case "medium":
+        return "h-[35vh]"
+      case "small":
+        return "h-[25vh]"
+      case "aspect-ratio":
+      default:
+        return "h-auto"
+    }
+  }
 
   // Check if this question has already been answered and reset timer
   useEffect(() => {
@@ -64,6 +80,11 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
       questionStartTime.current = Date.now()
     }
   }, [currentQuestionIndex, answers, currentQuestion.id])
+
+  // Update image size when question changes
+  useEffect(() => {
+    setImageSize(currentQuestion.image_display_size as "aspect-ratio" | "large" | "medium" | "small" || "aspect-ratio")
+  }, [currentQuestion.image_display_size])
 
   const handleAlternativeSelect = (alternativeId: string) => {
     // Can only select if not yet answered
@@ -281,26 +302,55 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
       {/* Question Card */}
       <Card className="mb-6">
         <CardHeader>
+           {currentQuestion.image_url && (
+             <div className="relative w-full mb-4 rounded-lg overflow-hidden bg-[#1a1a1a] border border-gray-200/10">
+               <div className={`relative w-full ${getImageHeightClass()} flex items-center justify-center`}>
+                 <Image
+                   src={currentQuestion.image_url}
+                   alt="Question image"
+                   width={800}
+                   height={600}
+                   className={`w-full ${getImageHeightClass()} object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity`}
+                   onClick={() => setFullscreenImage(currentQuestion.image_url!)}
+                 />
+                 <button
+                   onClick={() => setFullscreenImage(currentQuestion.image_url!)}
+                   className="absolute top-2 right-2 p-2 bg-black/50 rounded-lg text-white hover:bg-black/70 transition-colors"
+                 >
+                   <Maximize2 className="h-4 w-4" />
+                 </button>
+               </div>
+             </div>
+           )}
+
+          {/* Image Size Selector */}
           {currentQuestion.image_url && (
-            <div className="relative w-full mb-4 rounded-lg overflow-hidden bg-[#1a1a1a] border border-gray-200/10">
-              <div className="relative w-full max-h-64 flex items-center justify-center">
-                <Image
-                  src={currentQuestion.image_url}
-                  alt="Question image"
-                  width={800}
-                  height={600}
-                  className="w-full h-auto max-h-64 object-contain rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
-                  onClick={() => setFullscreenImage(currentQuestion.image_url!)}
-                />
-                <button
-                  onClick={() => setFullscreenImage(currentQuestion.image_url!)}
-                  className="absolute top-2 right-2 p-2 bg-black/50 rounded-lg text-white hover:bg-black/70 transition-colors"
-                >
-                  <Maximize2 className="h-4 w-4" />
-                </button>
+            <div className="mb-4">
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-400">Image Size:</label>
+                <Select value={imageSize} onValueChange={(value: "aspect-ratio" | "large" | "medium" | "small") => setImageSize(value)}>
+                  <SelectTrigger className="w-40 bg-[#1a1a1a] border-gray-200/10 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1a1a1a] border-gray-200/10">
+                    <SelectItem value="aspect-ratio" className="text-white focus:bg-gray-800">
+                      Aspect Ratio
+                    </SelectItem>
+                    <SelectItem value="large" className="text-white focus:bg-gray-800">
+                      Large (50vh)
+                    </SelectItem>
+                    <SelectItem value="medium" className="text-white focus:bg-gray-800">
+                      Medium (35vh)
+                    </SelectItem>
+                    <SelectItem value="small" className="text-white focus:bg-gray-800">
+                      Small (25vh)
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           )}
+
           <CardTitle className="text-2xl">
             {currentQuestion.question}
           </CardTitle>

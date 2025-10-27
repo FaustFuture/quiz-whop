@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { ChevronLeft, ChevronRight, Edit, Trash2, MoreVertical, BookOpen, Check, X, Camera } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -22,7 +23,7 @@ import { AddOptionDialog } from "@/components/add-option-dialog"
 import { SortableOptionsList } from "@/components/sortable-options-list"
 import { type Exercise } from "@/app/actions/exercises"
 import { type Alternative } from "@/app/actions/alternatives"
-import { deleteExercise, updateExercise } from "@/app/actions/exercises"
+import { deleteExercise, updateExercise, updateExerciseImageDisplaySize } from "@/app/actions/exercises"
 import { useRouter } from "next/navigation"
 
 interface ExerciseCardProps {
@@ -50,13 +51,27 @@ export function ExerciseCard({
   hasNext = false,
   isLoading = false
 }: ExerciseCardProps) {
+  const currentExercise = exercises[currentIndex]
   const [isDeleting, setIsDeleting] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editedQuestion, setEditedQuestion] = useState("")
   const [imageDialogOpen, setImageDialogOpen] = useState(false)
+  const [imageSize, setImageSize] = useState<"aspect-ratio" | "large" | "medium" | "small">(currentExercise.image_display_size as "aspect-ratio" | "large" | "medium" | "small" || "aspect-ratio")
   const router = useRouter()
 
-  const currentExercise = exercises[currentIndex]
+  const getImageHeightClass = () => {
+    switch (imageSize) {
+      case "large":
+        return "h-[50vh]"
+      case "medium":
+        return "h-[35vh]"
+      case "small":
+        return "h-[25vh]"
+      case "aspect-ratio":
+      default:
+        return "h-auto"
+    }
+  }
 
   const handleEditStart = () => {
     setEditedQuestion(currentExercise.question)
@@ -106,6 +121,26 @@ export function ExerciseCard({
     } catch (error) {
       console.error("Error updating image:", error)
       alert("An error occurred while updating the image. Please try again.")
+    }
+  }
+
+  const handleImageSizeChange = async (newSize: "aspect-ratio" | "large" | "medium" | "small") => {
+    setImageSize(newSize)
+    
+    try {
+      const result = await updateExerciseImageDisplaySize(currentExercise.id, moduleId, newSize)
+      
+      if (!result.success) {
+        console.error("Failed to update image display size:", result.error)
+        // Revert the state if the update failed
+        setImageSize(currentExercise.image_display_size as "aspect-ratio" | "large" | "medium" | "small" || "aspect-ratio")
+        alert("Failed to save image size setting. Please try again.")
+      }
+    } catch (error) {
+      console.error("Error updating image display size:", error)
+      // Revert the state if the update failed
+      setImageSize(currentExercise.image_display_size as "aspect-ratio" | "large" | "medium" | "small" || "aspect-ratio")
+      alert("An error occurred while saving the image size setting. Please try again.")
     }
   }
 
@@ -160,31 +195,59 @@ export function ExerciseCard({
       {/* Exercise Card */}
       <Card className="flex-1 min-h-[400px] w-[600px] border-gray-200/10 bg-[#141414]">
         <CardHeader className="pb-3">
-          {/* Clickable Image - Maintain Aspect Ratio */}
+          {/* Clickable Image - Full Width with Adjusted Height */}
           <div 
             className="w-full bg-[#1a1a1a] border border-gray-200/10 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-800 transition-colors group relative mb-4 overflow-hidden"
             onClick={() => setImageDialogOpen(true)}
           >
-            {currentExercise.image_url ? (
-              <img
-                src={currentExercise.image_url}
-                alt="Exercise image"
-                className="w-full h-auto max-h-64 object-contain rounded-lg"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none'
-                  e.currentTarget.nextElementSibling?.classList.remove('hidden')
-                }}
-              />
-            ) : (
-              <div className="w-full h-32 flex items-center justify-center">
-                <Camera className="w-12 h-12 text-gray-600" />
-              </div>
-            )}
+             {currentExercise.image_url ? (
+               <img
+                 src={currentExercise.image_url}
+                 alt="Exercise image"
+                 className={`w-full ${getImageHeightClass()} object-cover rounded-lg`}
+                 onError={(e) => {
+                   e.currentTarget.style.display = 'none'
+                   e.currentTarget.nextElementSibling?.classList.remove('hidden')
+                 }}
+               />
+             ) : (
+               <div className="w-full h-40 flex items-center justify-center">
+                 <Camera className="w-12 h-12 text-gray-600" />
+               </div>
+             )}
             {/* Camera overlay on hover */}
             <div className="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
               <Camera className="w-8 h-8 text-white" />
             </div>
           </div>
+
+          {/* Image Size Selector */}
+          {currentExercise.image_url && (
+            <div className="mb-4">
+              <div className="flex items-center gap-2">
+                <label className="text-sm text-gray-400">Image Size:</label>
+                <Select value={imageSize} onValueChange={handleImageSizeChange}>
+                  <SelectTrigger className="w-40 bg-[#1a1a1a] border-gray-200/10 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1a1a1a] border-gray-200/10">
+                    <SelectItem value="aspect-ratio" className="text-white focus:bg-gray-800">
+                      Aspect Ratio
+                    </SelectItem>
+                    <SelectItem value="large" className="text-white focus:bg-gray-800">
+                      Large (50vh)
+                    </SelectItem>
+                    <SelectItem value="medium" className="text-white focus:bg-gray-800">
+                      Medium (35vh)
+                    </SelectItem>
+                    <SelectItem value="small" className="text-white focus:bg-gray-800">
+                      Small (25vh)
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
           
           <div className="flex items-start justify-between gap-2">
             <div className="flex-1">

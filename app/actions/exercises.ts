@@ -8,6 +8,7 @@ export type Exercise = {
   module_id: string
   question: string
   image_url: string | null
+  image_display_size: string
   weight: number
   order: number
   created_at: string
@@ -126,6 +127,31 @@ export async function updateExercise(
   } catch (error) {
     console.error("Error updating exercise:", error)
     return { success: false, error: "Failed to update exercise" }
+  }
+}
+
+export async function updateExerciseImageDisplaySize(
+  exerciseId: string, 
+  moduleId: string, 
+  imageDisplaySize: string
+) {
+  try {
+    const { error } = await supabase
+      .from("exercises")
+      .update({ image_display_size: imageDisplaySize })
+      .eq("id", exerciseId)
+      .eq("module_id", moduleId)
+
+    if (error) {
+      console.error("Error updating image display size:", error)
+      return { success: false, error: error.message }
+    }
+
+    revalidatePath(`/dashboard/[companyId]/modules/[moduleId]`, "page")
+    return { success: true }
+  } catch (error) {
+    console.error("Error updating image display size:", error)
+    return { success: false, error: "An unexpected error occurred" }
   }
 }
 
