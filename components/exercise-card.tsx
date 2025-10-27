@@ -66,6 +66,12 @@ export function ExerciseCard({
     setImageSize(currentExercise.image_display_size as "aspect-ratio" | "large" | "medium" | "small" || "aspect-ratio")
   }, [currentExercise.image_display_size, currentIndex])
 
+	// Reset edit state when navigating to a different exercise
+	useEffect(() => {
+		setIsEditing(false)
+		setEditedQuestion("")
+	}, [currentIndex, currentExercise.id])
+
   const getImageHeightClass = () => {
     switch (imageSize) {
       case "large":
@@ -376,11 +382,15 @@ export function ExerciseCard({
                       className="text-base bg-[#1a1a1a] border-gray-200/10 text-white placeholder:text-gray-500"
                       autoFocus
                     />
+                    {!editedQuestion.trim() && (
+                      <p className="text-xs text-red-400">Question title is required.</p>
+                    )}
                     <div className="flex gap-2">
                       <Button
                         size="sm"
                         onClick={handleEditSave}
-                        className="h-8 px-3 bg-emerald-600 hover:bg-emerald-700"
+                        disabled={!editedQuestion.trim()}
+                        className="h-8 px-3 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
                       >
                         <Check className="w-3 h-3 mr-1" />
                         Save
@@ -405,6 +415,9 @@ export function ExerciseCard({
                   </CardDescription>
                 )}
               </div>
+              {!isEditing && !currentExercise.question?.trim() && (
+                <p className="text-xs text-red-400 mt-1">Question title is required.</p>
+              )}
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

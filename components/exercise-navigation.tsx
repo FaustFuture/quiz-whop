@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import { ExerciseCard } from "@/components/exercise-card"
 import { type Exercise } from "@/app/actions/exercises"
 import { type Alternative } from "@/app/actions/alternatives"
@@ -15,6 +16,19 @@ export function ExerciseNavigation({ exercises, moduleId }: ExerciseNavigationPr
   const [currentIndex, setCurrentIndex] = useState(0)
   const [alternatives, setAlternatives] = useState<Alternative[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const searchParams = useSearchParams()
+
+  // If a new exercise was just created, jump to it once on mount
+  useEffect(() => {
+    const newExerciseId = searchParams.get("exerciseId")
+    if (!newExerciseId) return
+    const idx = exercises.findIndex((e) => e.id === newExerciseId)
+    if (idx !== -1) {
+      setCurrentIndex(idx)
+    }
+  // only run on first render with current exercises list
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [exercises])
 
   // Load alternatives for the current exercise
   useEffect(() => {
@@ -36,6 +50,16 @@ export function ExerciseNavigation({ exercises, moduleId }: ExerciseNavigationPr
 
     loadAlternatives()
   }, [exercises, currentIndex])
+
+  // Broadcast whether the current exercise allows adding a new one
+  useEffect(() => {
+    const current = exercises[currentIndex]
+    if (!current) return
+    const hasTitle = !!current.question?.trim()
+    const hasAnyOption = alternatives.length > 0
+    const canAdd = hasTitle && hasAnyOption
+    window.dispatchEvent(new CustomEvent("quizwhop:exercise-can-add", { detail: { canAdd } }))
+  }, [exercises, currentIndex, alternatives])
 
   const handlePrevious = () => {
     if (currentIndex > 0) {

@@ -43,7 +43,7 @@ export function ResultDetailsModal({ resultId, open, onClose }: ResultDetailsMod
       />
 
       {/* Modal Content */}
-      <Card className="relative z-10 w-full max-w-3xl max-h-[90vh] mx-4 shadow-lg bg-[#141414] border-gray-200/10">
+      <Card className="relative z-10 w-full max-w-3xl max-h-[90vh] mx-4 shadow-lg bg-[#141414] border-gray-200/10 overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-200/10">
           <div className="flex items-center gap-2">
@@ -120,7 +120,7 @@ export function ResultDetailsModal({ resultId, open, onClose }: ResultDetailsMod
                 <div>
                   <h3 className="font-semibold text-lg text-white mb-4">Question Responses</h3>
                   
-                  <div className="max-h-[40vh] overflow-y-auto">
+                  <div className="max-h-[30vh] overflow-y-auto overflow-x-hidden break-words">
                     <div className="space-y-4 pr-4">
                   {data.answers.map((answer: any, index: number) => (
                     <div

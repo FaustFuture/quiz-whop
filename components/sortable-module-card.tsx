@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { Trash2, MoreVertical, GripVertical } from "lucide-react"
+import { Trash2, MoreVertical, GripVertical, AlertTriangle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/card"
 import { type Module } from "@/app/actions/modules"
 import { deleteModule } from "@/app/actions/modules"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 interface SortableModuleCardProps {
   module: Module
@@ -25,6 +26,7 @@ interface SortableModuleCardProps {
 
 export function SortableModuleCard({ module, companyId, isActive = false, onModuleDeleted }: SortableModuleCardProps) {
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const router = useRouter()
 
   const {
@@ -44,10 +46,6 @@ export function SortableModuleCard({ module, companyId, isActive = false, onModu
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent card click
-    if (!confirm("Are you sure you want to delete this module? This action cannot be undone.")) {
-      return
-    }
-
     setIsDeleting(true)
     
     try {
@@ -60,6 +58,7 @@ export function SortableModuleCard({ module, companyId, isActive = false, onModu
         }
         // Also refresh the router as backup
         router.refresh()
+        setIsConfirmOpen(false)
       } else {
         console.error("Failed to delete module:", result.error)
         alert("Failed to delete module. Please try again.")
@@ -115,7 +114,7 @@ export function SortableModuleCard({ module, companyId, isActive = false, onModu
               size="icon"
               className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 hover:bg-red-500/10"
               disabled={isDeleting}
-              onClick={handleDelete}
+              onClick={(e) => { e.stopPropagation(); setIsConfirmOpen(true) }}
             >
               <Trash2 className="h-4 w-4" />
               <span className="sr-only">Delete module</span>
@@ -128,6 +127,38 @@ export function SortableModuleCard({ module, companyId, isActive = false, onModu
           <span>Created {new Date(module.created_at).toLocaleDateString()}</span>
         </div>
       </CardContent>
+      <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+        <DialogContent onClick={(e) => e.stopPropagation()} className="sm:max-w-md border-emerald-500/30">
+          <div className="flex items-start gap-4">
+            <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
+              <AlertTriangle className="h-5 w-5 text-emerald-500" />
+            </div>
+            <div className="space-y-2">
+              <DialogTitle className="text-xl">Delete module?</DialogTitle>
+              <DialogDescription>
+                You are about to permanently delete <span className="font-medium text-emerald-400">{module.title}</span>. This action cannot be undone.
+              </DialogDescription>
+            </div>
+          </div>
+          <DialogFooter className="sm:justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={(e) => { e.stopPropagation(); setIsConfirmOpen(false) }}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              autoFocus
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   )
 }

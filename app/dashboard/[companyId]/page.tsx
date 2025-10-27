@@ -2,6 +2,8 @@ import { headers } from "next/headers";
 import { whopsdk } from "@/lib/whop-sdk";
 import { getRecentResults, getResultsByUserAndModule } from "@/app/actions/results";
 import { getModules } from "@/app/actions/modules";
+import { getExercises } from "@/app/actions/exercises";
+import { getAlternatives } from "@/app/actions/alternatives";
 import { getCompany, createOrUpdateCompany } from "@/app/actions/company";
 import { DashboardWithToggle } from "@/components/dashboard-with-toggle";
 
@@ -60,16 +62,19 @@ export default async function DashboardPage({
 	const [recentResults, modules] = isAdmin 
 		? await Promise.all([
 			getRecentResults(companyId, 10),
-			getModules(companyId)
+    getModules(companyId)
 		])
 		: [[], []];
+
+	// Base modules list for member view (admin uses the same `modules`)
+	let memberBaseModules = modules;
 
 	// Fetch user results for member view
 	let userResults = {};
 	if (!isAdmin) {
-		const modules = await getModules(companyId);
+		memberBaseModules = await getModules(companyId);
 		const results = await Promise.all(
-			modules.map(async (module) => {
+			memberBaseModules.map(async (module) => {
 				const result = await getResultsByUserAndModule(userId, module.id);
 				return { moduleId: module.id, result };
 			})
@@ -80,7 +85,25 @@ export default async function DashboardPage({
 		}, {} as any);
 	}
 
-	return (
+	// Build a filtered list of modules for member view: must have at least one exercise
+	// with non-empty question and at least one alternative
+	const memberModules = await (async () => {
+		const list = [] as typeof memberBaseModules;
+		for (const m of memberBaseModules) {
+			const exs = await getExercises(m.id);
+			let eligible = false;
+			for (const ex of exs) {
+				if (ex.question && ex.question.trim().length > 0) {
+					const alts = await getAlternatives(ex.id);
+					if (alts.length > 0) { eligible = true; break; }
+				}
+			}
+			if (eligible) list.push(m);
+		}
+		return list;
+	})();
+
+return (
 		<DashboardWithToggle
 			isAdmin={isAdmin}
 			companyId={companyId}
@@ -89,6 +112,7 @@ export default async function DashboardPage({
 			companyData={companyData}
 			recentResults={recentResults}
 			modules={modules}
+      memberModules={memberModules}
 			userResults={userResults}
 		/>
 	);
