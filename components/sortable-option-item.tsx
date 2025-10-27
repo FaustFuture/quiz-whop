@@ -135,6 +135,9 @@ export function SortableOptionItem({ option, exerciseId }: SortableOptionItemPro
               className="bg-[#1a1a1a] border-gray-200/10 text-white"
               autoFocus
             />
+            {!editedContent.trim() && (
+              <p className="text-xs text-red-400">Option content is required.</p>
+            )}
             <Textarea
               value={editedExplanation}
               onChange={(e) => setEditedExplanation(e.target.value)}
@@ -157,7 +160,7 @@ export function SortableOptionItem({ option, exerciseId }: SortableOptionItemPro
               </label>
             </div>
             <div className="flex gap-2">
-              <Button size="sm" onClick={handleSave} disabled={isSaving} className="bg-emerald-600 hover:bg-emerald-700">
+              <Button size="sm" onClick={handleSave} disabled={isSaving || !editedContent.trim()} className="bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50">
                 <Check className="w-3 h-3 mr-1" />
                 {isSaving ? "Saving..." : "Save"}
               </Button>

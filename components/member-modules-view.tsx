@@ -119,7 +119,7 @@ async function ModuleExamCard({ module, companyId, userId }: ModuleExamCardProps
             <Link href={`/dashboard/${companyId}/modules/${module.id}/exam`} className="mt-auto">
               <Button className="w-full gap-2 bg-emerald-600 hover:bg-emerald-700">
                 <Play className="h-4 w-4" />
-                Take Exam
+                Take Quiz
               </Button>
             </Link>
           </div>

@@ -92,6 +92,7 @@ export function SortableOptionsList({ alternatives, exerciseId }: SortableOption
       <div className="p-3 border border-dashed rounded-lg text-center text-muted-foreground">
         <p className="text-sm">No options yet</p>
         <p className="text-xs mt-1">Add alternatives for this exercise</p>
+        <p className="text-xs text-red-400 mt-2">At least one option is required.</p>
       </div>
     )
   }

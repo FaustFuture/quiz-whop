@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { MoreVertical, Trash2 } from "lucide-react"
+import { MoreVertical, Trash2, AlertTriangle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import {
   Card,
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { deleteModule, type Module } from "@/app/actions/modules"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 interface ModuleCardProps {
   module: Module
@@ -26,15 +27,12 @@ interface ModuleCardProps {
 
 export function ModuleCard({ module, companyId }: ModuleCardProps) {
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
   const router = useRouter()
 
   const handleDelete = async (e: React.MouseEvent) => {
     e.stopPropagation() // Prevent card click
     
-    if (!confirm("Are you sure you want to delete this module? This action cannot be undone.")) {
-      return
-    }
-
     setIsDeleting(true)
     
     try {
@@ -42,6 +40,7 @@ export function ModuleCard({ module, companyId }: ModuleCardProps) {
       
       if (result.success) {
         router.refresh()
+        setIsConfirmOpen(false)
       } else {
         console.error("Failed to delete module:", result.error)
         alert("Failed to delete module. Please try again.")
@@ -89,7 +88,7 @@ export function ModuleCard({ module, companyId }: ModuleCardProps) {
             <DropdownMenuContent align="end">
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive"
-                onClick={handleDelete}
+                onClick={(e) => { e.stopPropagation(); setIsConfirmOpen(true) }}
                 disabled={isDeleting}
               >
                 <Trash2 className="mr-2 h-4 w-4" />
@@ -104,6 +103,38 @@ export function ModuleCard({ module, companyId }: ModuleCardProps) {
           <span>Created {new Date(module.created_at).toLocaleDateString()}</span>
         </div>
       </CardContent>
+      <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+        <DialogContent onClick={(e) => e.stopPropagation()} className="sm:max-w-md border-emerald-500/30">
+          <div className="flex items-start gap-4">
+            <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
+              <AlertTriangle className="h-5 w-5 text-emerald-500" />
+            </div>
+            <div className="space-y-2">
+              <DialogTitle className="text-xl">Delete module?</DialogTitle>
+              <DialogDescription>
+                You are about to permanently delete <span className="font-medium text-emerald-400">{module.title}</span>. This action cannot be undone.
+              </DialogDescription>
+            </div>
+          </div>
+          <DialogFooter className="sm:justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={(e) => { e.stopPropagation(); setIsConfirmOpen(false) }}
+              disabled={isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              autoFocus
+            >
+              {isDeleting ? "Deleting..." : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   )
 }

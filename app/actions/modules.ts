@@ -56,7 +56,7 @@ export async function getModules(companyId: string): Promise<Module[]> {
       .from("modules")
       .select("*")
       .eq("company_id", companyId)
-      .order("order", { ascending: true })
+      .order("created_at", { ascending: false })
 
     if (error) {
       console.error("Error fetching modules:", error)

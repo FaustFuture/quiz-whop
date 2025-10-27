@@ -123,7 +123,7 @@ function ModuleExamCard({ module, companyId, userId, hasResult, result }: Module
             >
               <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
                 <Play className="w-4 h-4 mr-2" />
-                Take Exam
+                Take Quiz
               </Button>
             </Link>
           </div>

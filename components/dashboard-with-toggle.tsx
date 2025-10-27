@@ -18,6 +18,7 @@ interface DashboardWithToggleProps {
   companyData: Company | null
   recentResults: any[]
   modules: Module[]
+  memberModules: Module[]
   userResults: { [moduleId: string]: any }
 }
 
@@ -29,6 +30,7 @@ export function DashboardWithToggle({
   companyData,
   recentResults,
   modules,
+  memberModules,
   userResults
 }: DashboardWithToggleProps) {
   const [showMemberView, setShowMemberView] = useState(false)
@@ -93,7 +95,7 @@ export function DashboardWithToggle({
           <MemberModulesViewClient 
             companyId={companyId} 
             userId={userId} 
-            modules={modules}
+            modules={memberModules}
             userResults={userResults}
           />
         </main>
