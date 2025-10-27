@@ -22,15 +22,15 @@ export async function MemberModulesView({ companyId, userId }: MemberModulesView
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight text-white">Available Modules</h2>
-        <p className="text-gray-400">
+        <h2 className="text-3xl font-bold tracking-tight text-foreground">Available Modules</h2>
+        <p className="text-muted-foreground">
           Select a module to take the exam
         </p>
       </div>
       
       {modules.length === 0 ? (
-        <div className="rounded-xl border border-gray-200/10 bg-[#141414] p-12 text-center">
-          <p className="text-gray-400">
+        <div className="rounded-xl border border-border bg-card p-12 text-center">
+          <p className="text-muted-foreground">
             No modules available yet. Please check back later.
           </p>
         </div>
@@ -62,13 +62,13 @@ async function ModuleExamCard({ module, companyId, userId }: ModuleExamCardProps
   const hasResult = result !== null
   
   return (
-    <Card className="relative group hover:shadow-xl transition-all border-gray-200/10 bg-[#141414] hover:bg-[#1a1a1a] hover:border-emerald-500/50 flex flex-col min-h-64">
+    <Card className="relative group hover:shadow-xl border-border bg-card hover:bg-muted hover:border-emerald-500/50 flex flex-col min-h-64">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
-            <CardTitle className="text-2xl text-white">{module.title}</CardTitle>
+            <CardTitle className="text-2xl text-foreground">{module.title}</CardTitle>
             {module.description && (
-              <CardDescription className="mt-3 line-clamp-3 text-gray-400 text-base">
+              <CardDescription className="mt-3 line-clamp-3 text-muted-foreground text-base">
                 {module.description}
               </CardDescription>
             )}
@@ -79,9 +79,9 @@ async function ModuleExamCard({ module, companyId, userId }: ModuleExamCardProps
         {hasResult ? (
           <div className="space-y-6 flex flex-col flex-1">
             {/* Show previous result */}
-            <div className="rounded-xl bg-[#1a1a1a] border border-gray-200/10 p-5 space-y-3">
+            <div className="rounded-xl bg-muted border border-border p-5 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-400">
+                <span className="text-sm font-medium text-muted-foreground">
                   Previous Score
                 </span>
                 <Trophy className="h-5 w-5 text-emerald-500" />
@@ -92,18 +92,18 @@ async function ModuleExamCard({ module, companyId, userId }: ModuleExamCardProps
                 }`}>
                   {Math.round(result.score)}%
                 </span>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-muted-foreground">
                   ({result.correct_answers}/{result.total_questions} correct)
                 </span>
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Taken {new Date(result.submitted_at).toLocaleDateString()}
               </p>
             </div>
             
             {/* Retake button */}
             <Link href={`/dashboard/${companyId}/modules/${module.id}/exam`} className="mt-auto">
-              <Button className="w-full gap-2 bg-black border-gray-200/10 text-gray-400 hover:text-white hover:bg-gray-800 hover:border-emerald-500" variant="outline">
+              <Button className="w-full gap-2 bg-muted border-border text-muted-foreground hover:text-foreground hover:bg-accent hover:border-emerald-500" variant="outline">
                 <RotateCcw className="h-4 w-4" />
                 Retake Exam
               </Button>
@@ -112,7 +112,7 @@ async function ModuleExamCard({ module, companyId, userId }: ModuleExamCardProps
         ) : (
           <div className="flex flex-col flex-1">
             {/* No result yet - show take exam */}
-            <div className="flex items-center gap-2 text-sm text-gray-500 py-2 mb-4">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground py-2 mb-4">
               <span>Created {new Date(module.created_at).toLocaleDateString()}</span>
             </div>
             

@@ -7,6 +7,7 @@ import { getAlternatives } from "@/app/actions/alternatives"
 import { ExamInterface } from "@/components/exam-interface"
 import { notFound } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
+import { getCompany } from "@/app/actions/company"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
@@ -21,9 +22,10 @@ export default async function ExamPage({ params }: ExamPageProps) {
   const { userId } = await whopsdk.verifyUserToken(await headers())
 
   // Fetch the company and user data
-  const [company, user] = await Promise.all([
+  const [company, user, companyRecord] = await Promise.all([
     whopsdk.companies.retrieve(companyId),
-    whopsdk.users.retrieve(userId)
+    whopsdk.users.retrieve(userId),
+    getCompany(companyId)
   ])
   
   // Get company name, fallback to ID if name is not available
@@ -56,7 +58,7 @@ export default async function ExamPage({ params }: ExamPageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <DashboardNavbar companyName={companyName} />
+      <DashboardNavbar companyName={companyName} logoUrl={companyRecord?.logo_url || null} />
       <main className="container mx-auto p-6">
         {/* Header */}
         <div className="mb-6">

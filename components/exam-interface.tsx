@@ -157,7 +157,7 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
 
   const getAlternativeStyle = (alternativeId: string, isCorrect: boolean) => {
     if (!hasAnswered) {
-      return "border-gray-200/10 hover:border-primary cursor-pointer"
+      return "border-border hover:border-primary cursor-pointer"
     }
 
     if (alternativeId === selectedAlternativeId) {
@@ -173,7 +173,7 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
       return "border-green-500 bg-green-50 dark:bg-green-950"
     }
 
-    return "border-gray-200/10 opacity-50"
+    return "border-border opacity-50"
   }
 
   const getAlternativeIcon = (alternativeId: string, isCorrect: boolean) => {
@@ -299,10 +299,10 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
       </div>
 
       {/* Question Card */}
-      <Card className="mb-6 border-gray-200/10">
+      <Card className="mb-6 border-border">
         <CardHeader>
            {currentQuestion.image_url && (
-             <div className="relative w-full mb-4 rounded-lg overflow-hidden bg-[#1a1a1a] border border-gray-200/10">
+             <div className="relative w-full mb-4 rounded-lg overflow-hidden bg-muted border border-border">
                <div className={`relative w-full ${getImageHeightClass()} flex items-center justify-center`}>
                  <Image
                    src={currentQuestion.image_url}
@@ -314,7 +314,7 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
                  />
                  <button
                    onClick={() => setFullscreenImage(currentQuestion.image_url!)}
-                   className="absolute top-2 right-2 p-2 bg-black/50 rounded-lg text-white hover:bg-black/70 transition-colors"
+                   className="absolute top-2 right-2 p-2 bg-black/50 rounded-lg text-white hover:bg-black/70"
                  >
                    <Maximize2 className="h-4 w-4" />
                  </button>
@@ -416,7 +416,7 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
           <div className="relative max-w-[90vw] max-h-[90vh] p-4">
             <button
               onClick={() => setFullscreenImage(null)}
-              className="absolute top-4 right-4 z-10 p-2 bg-black/50 rounded-lg text-white hover:bg-black/70 transition-colors"
+              className="absolute top-4 right-4 z-10 p-2 bg-black/50 rounded-lg text-white hover:bg-black/70"
             >
               <X className="h-6 w-6" />
             </button>

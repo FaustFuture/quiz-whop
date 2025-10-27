@@ -132,7 +132,7 @@ export function SortableOptionItem({ option, exerciseId }: SortableOptionItemPro
               value={editedContent}
               onChange={(e) => setEditedContent(e.target.value)}
               placeholder="Option content"
-              className="bg-[#1a1a1a] border-gray-200/10 text-white"
+              className="bg-muted border-border text-foreground"
               autoFocus
             />
             {!editedContent.trim() && (
@@ -142,7 +142,7 @@ export function SortableOptionItem({ option, exerciseId }: SortableOptionItemPro
               value={editedExplanation}
               onChange={(e) => setEditedExplanation(e.target.value)}
               placeholder="Explanation (optional)"
-              className="bg-[#1a1a1a] border-gray-200/10 text-white"
+              className="bg-muted border-border text-foreground"
               rows={2}
             />
             <div className="flex items-center space-x-2">
@@ -154,7 +154,7 @@ export function SortableOptionItem({ option, exerciseId }: SortableOptionItemPro
               />
               <label
                 htmlFor={`edit-is-correct-${option.id}`}
-                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-300"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-foreground"
               >
                 This is the correct answer
               </label>
@@ -164,7 +164,7 @@ export function SortableOptionItem({ option, exerciseId }: SortableOptionItemPro
                 <Check className="w-3 h-3 mr-1" />
                 {isSaving ? "Saving..." : "Save"}
               </Button>
-              <Button size="sm" variant="outline" onClick={handleCancel} disabled={isSaving} className="bg-black border-gray-200/10 text-gray-400 hover:text-white hover:bg-gray-800">
+              <Button size="sm" variant="outline" onClick={handleCancel} disabled={isSaving} className="bg-muted border-border text-muted-foreground hover:text-foreground hover:bg-accent">
                 <X className="w-3 h-3 mr-1" />
                 Cancel
               </Button>
@@ -179,7 +179,7 @@ export function SortableOptionItem({ option, exerciseId }: SortableOptionItemPro
     <Card 
       ref={setNodeRef}
       style={style}
-      className={`group ${option.is_correct ? 'border-emerald-500/50 bg-emerald-500/10' : 'border-gray-200/10 bg-[#1a1a1a]'} ${
+      className={`group ${option.is_correct ? 'border-emerald-500/50 bg-emerald-500/10' : 'border-border bg-card'} ${
         isDragging ? 'opacity-50 z-50' : ''
       }`}
     >
@@ -192,10 +192,10 @@ export function SortableOptionItem({ option, exerciseId }: SortableOptionItemPro
                 onCheckedChange={handleCorrectnessToggle}
                 className="border-gray-600 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
               />
-              <span className="font-medium text-gray-200">{option.content}</span>
+              <span className="font-medium text-foreground">{option.content}</span>
             </div>
             {option.explanation && (
-              <p className="text-sm text-gray-400 ml-6">
+              <p className="text-sm text-muted-foreground ml-6">
                 {option.explanation}
               </p>
             )}
@@ -205,7 +205,7 @@ export function SortableOptionItem({ option, exerciseId }: SortableOptionItemPro
             <Button
               variant="ghost"
               size="icon"
-              className="h-6 w-6 cursor-grab active:cursor-grabbing opacity-60 hover:opacity-100 transition-opacity text-gray-500 hover:text-gray-300"
+              className="h-6 w-6 cursor-grab active:cursor-grabbing opacity-60 hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
               {...attributes}
               {...listeners}
             >
@@ -219,20 +219,20 @@ export function SortableOptionItem({ option, exerciseId }: SortableOptionItemPro
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6 text-gray-500 hover:text-gray-300 hover:bg-gray-800"
+                  className="h-6 w-6 text-muted-foreground hover:text-foreground hover:bg-accent"
                   disabled={isDeleting}
                 >
                   <MoreVertical className="h-3 w-3" />
                   <span className="sr-only">Open menu</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-[#1a1a1a] border-gray-200/10">
-                <DropdownMenuItem onClick={() => setIsEditing(true)} className="text-gray-300 focus:bg-gray-800 focus:text-white">
+              <DropdownMenuContent align="end" className="bg-muted border-border">
+                <DropdownMenuItem onClick={() => setIsEditing(true)} className="text-muted-foreground focus:bg-accent focus:text-foreground">
                   <Edit className="mr-2 h-3 w-3" />
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className="text-red-400 focus:text-red-400 focus:bg-red-500/10"
+                  className="text-red-500 focus:text-red-500 focus:bg-red-500/10"
                   onClick={handleDelete}
                   disabled={isDeleting}
                 >

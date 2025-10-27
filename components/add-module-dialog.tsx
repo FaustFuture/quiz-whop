@@ -72,17 +72,17 @@ export function AddModuleDialog({ companyId, onModuleCreated }: AddModuleDialogP
           Add Module
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[525px] bg-[#141414] border-gray-200/10">
+      <DialogContent className="sm:max-w-[525px] bg-card border-border">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle className="text-white">Create New Module</DialogTitle>
-            <DialogDescription className="text-gray-400">
+            <DialogTitle className="text-foreground">Create New Module</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
               Add a new quiz module. Fill in the title and description below.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="title" className="text-gray-300">
+              <Label htmlFor="title" className="text-foreground">
                 Title <span className="text-red-400">*</span>
               </Label>
               <Input
@@ -92,18 +92,18 @@ export function AddModuleDialog({ companyId, onModuleCreated }: AddModuleDialogP
                 onChange={(e) => setTitle(e.target.value)}
                 required
                 autoFocus
-                className="bg-[#1a1a1a] border-gray-200/10 text-white placeholder:text-gray-500"
+                className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="description" className="text-gray-300">Description</Label>
+              <Label htmlFor="description" className="text-foreground">Description</Label>
               <Textarea
                 id="description"
                 placeholder="Describe what this module covers..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
-                className="bg-[#1a1a1a] border-gray-200/10 text-white placeholder:text-gray-500"
+                className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
               />
             </div>
           </div>
@@ -113,7 +113,7 @@ export function AddModuleDialog({ companyId, onModuleCreated }: AddModuleDialogP
               variant="outline"
               onClick={() => setOpen(false)}
               disabled={isLoading}
-              className="bg-black border-gray-200/10 text-gray-400 hover:text-white hover:bg-gray-800"
+              className="bg-muted border-border text-muted-foreground hover:text-foreground hover:bg-accent"
             >
               Cancel
             </Button>

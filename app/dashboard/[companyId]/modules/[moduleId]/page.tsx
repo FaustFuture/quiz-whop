@@ -8,6 +8,7 @@ import { notFound } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { getCompany } from "@/app/actions/company"
 import { AddExerciseDialog } from "@/components/add-exercise-dialog"
 import { ExerciseNavigation } from "@/components/exercise-navigation"
 
@@ -22,10 +23,11 @@ export default async function ModulePage({ params }: ModulePageProps) {
   const { userId } = await whopsdk.verifyUserToken(await headers())
 
   // Fetch the company data, module, and exercises
-  const [company, modules, exercises] = await Promise.all([
+  const [company, modules, exercises, companyRecord] = await Promise.all([
     whopsdk.companies.retrieve(companyId),
     getModules(companyId),
     getExercises(moduleId),
+    getCompany(companyId),
   ])
 
   const module = modules.find((m) => m.id === moduleId)
@@ -41,24 +43,14 @@ export default async function ModulePage({ params }: ModulePageProps) {
   const companyName = (company as any).name || (company as any).title || companyId
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a]">
-      {/* Custom Header */}
-      <header className="border-b border-gray-200/10 bg-[#0f0f0f]">
-        <div className="container mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">Q</span>
-            </div>
-            <h1 className="text-xl font-semibold text-white">{companyName}</h1>
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-background">
+      <DashboardNavbar companyName={companyName} logoUrl={companyRecord?.logo_url || null} />
 
       <main className="container mx-auto p-8">
         {/* Header */}
         <div className="mb-8">
           <Link href={`/dashboard/${companyId}`}>
-            <Button variant="ghost" className="mb-6 gap-2 text-gray-400 hover:text-white hover:bg-gray-800">
+            <Button variant="ghost" className="mb-6 gap-2 text-muted-foreground hover:text-foreground hover:bg-accent">
               <ArrowLeft className="h-4 w-4" />
               Back to Modules
             </Button>
@@ -66,9 +58,9 @@ export default async function ModulePage({ params }: ModulePageProps) {
           
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-bold tracking-tight text-white">{module.title}</h1>
+              <h1 className="text-4xl font-bold tracking-tight text-foreground">{module.title}</h1>
               {module.description && (
-                <p className="mt-2 text-lg text-gray-400">
+                <p className="mt-2 text-lg text-muted-foreground">
                   {module.description}
                 </p>
               )}
@@ -80,7 +72,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
         {/* Exercises Section */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold tracking-tight text-white">
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">
               Exercises ({exercises.length})
             </h2>
           </div>

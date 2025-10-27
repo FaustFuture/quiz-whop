@@ -79,7 +79,7 @@ export function SortableModuleCard({ module, companyId, isActive = false, onModu
     <Card 
       ref={setNodeRef}
       style={style}
-      className={`relative group hover:shadow-xl transition-all cursor-pointer border-gray-200/10 bg-[#141414] hover:bg-[#1a1a1a] hover:border-emerald-500/50 w-full h-64 flex flex-col ${
+      className={`relative group hover:shadow-xl cursor-pointer border-border bg-card hover:bg-muted hover:border-emerald-500/50 w-full h-64 flex flex-col ${
         isDragging ? 'opacity-50 z-50' : ''
       }`}
       onClick={handleCardClick}
@@ -87,9 +87,9 @@ export function SortableModuleCard({ module, companyId, isActive = false, onModu
       <CardHeader className="pb-3 flex-1">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
-            <CardTitle className="text-lg text-white line-clamp-2">{module.title}</CardTitle>
+            <CardTitle className="text-lg text-foreground line-clamp-2">{module.title}</CardTitle>
             {module.description && (
-              <CardDescription className="mt-2 line-clamp-2 text-gray-400 text-sm">
+              <CardDescription className="mt-2 line-clamp-2 text-muted-foreground text-sm">
                 {module.description}
               </CardDescription>
             )}
@@ -123,7 +123,7 @@ export function SortableModuleCard({ module, companyId, isActive = false, onModu
         </div>
       </CardHeader>
       <CardContent className="pt-0 pb-4">
-        <div className="flex items-center gap-2 text-xs text-gray-500">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>Created {new Date(module.created_at).toLocaleDateString()}</span>
         </div>
       </CardContent>
