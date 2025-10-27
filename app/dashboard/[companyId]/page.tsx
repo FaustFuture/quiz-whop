@@ -4,8 +4,10 @@ import { DashboardNavbar } from "@/components/dashboard-navbar";
 import { ModulesSection } from "@/components/modules-section";
 import { MemberModulesView } from "@/components/member-modules-view";
 import { ResultsSidebar } from "@/components/results-sidebar";
+import { CompanyLogoUpload } from "@/components/company-logo-upload";
 import { getRecentResults } from "@/app/actions/results";
 import { getModules } from "@/app/actions/modules";
+import { getCompany, createOrUpdateCompany } from "@/app/actions/company";
 import { DebugAccess } from "@/components/debug-access";
 
 export default async function DashboardPage({
@@ -36,8 +38,28 @@ export default async function DashboardPage({
 	// Get company name, fallback to ID if name is not available
 	const companyName = (company as any).name || (company as any).title || companyId;
 
+	// Fetch or create company record
+	let companyData = null;
+	try {
+		companyData = await getCompany(companyId);
+		console.log("Company data:", companyData);
+		if (!companyData) {
+			// Create company record if it doesn't exist
+			console.log("Creating company record for:", companyId, companyName);
+			const createResult = await createOrUpdateCompany(companyId, companyName);
+			console.log("Create result:", createResult);
+			if (createResult.success) {
+				companyData = createResult.data;
+			}
+		}
+	} catch (error) {
+		console.log("Error with company data, continuing without it:", error);
+		// Continue without company data - the component will handle it
+	}
+
 	// Check if user is admin based on access data
 	const isAdmin = checkUserIsAdmin(userId, company, access);
+	console.log("Is admin:", isAdmin);
 
 	// Fetch recent results and modules for admin sidebar
 	const [recentResults, modules] = isAdmin 
@@ -52,12 +74,30 @@ export default async function DashboardPage({
 			{/* Custom Header */}
 			<header className="border-b border-gray-200/10 bg-[#0f0f0f]">
 				<div className="mx-auto px-8 h-16 flex items-center justify-between">
-					<div className="flex items-center gap-3">
-						<div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center">
-							<span className="text-white font-bold text-sm">Q</span>
+					{isAdmin ? (
+						<div className="flex items-center gap-3">
+							<CompanyLogoUpload 
+								companyId={companyId}
+								currentLogoUrl={companyData?.logo_url || null}
+								companyName={companyName}
+							/>
 						</div>
-						<h1 className="text-xl font-semibold text-white">{companyName}</h1>
-					</div>
+					) : (
+						<div className="flex items-center gap-3">
+							{companyData?.logo_url ? (
+								<img
+									src={companyData.logo_url}
+									alt={`${companyName} logo`}
+									className="w-8 h-8 rounded-lg object-cover"
+								/>
+							) : (
+								<div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center">
+									<span className="text-white font-bold text-sm">Q</span>
+								</div>
+							)}
+							<h1 className="text-xl font-semibold text-white">{companyName}</h1>
+						</div>
+					)}
 					<div className="flex items-center gap-4">
 						<span className="text-sm text-gray-400">{isAdmin ? "Admin" : "Member"}</span>
 					</div>
@@ -69,7 +109,7 @@ export default async function DashboardPage({
 					{/* Main Content */}
 					<main className="flex-1 p-8">
 						<div className="max-w-7xl mx-auto">
-							<ModulesSection companyId={companyId} />
+							<ModulesSection companyId={companyId} initialModules={modules} />
 						</div>
 					</main>
 					

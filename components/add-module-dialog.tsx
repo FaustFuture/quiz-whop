@@ -20,9 +20,10 @@ import { useRouter } from "next/navigation"
 
 interface AddModuleDialogProps {
   companyId: string
+  onModuleCreated?: () => void
 }
 
-export function AddModuleDialog({ companyId }: AddModuleDialogProps) {
+export function AddModuleDialog({ companyId, onModuleCreated }: AddModuleDialogProps) {
   const [open, setOpen] = useState(false)
   const [title, setTitle] = useState("")
   const [description, setDescription] = useState("")
@@ -45,6 +46,11 @@ export function AddModuleDialog({ companyId }: AddModuleDialogProps) {
         setTitle("")
         setDescription("")
         setOpen(false)
+        // Call the callback to refetch modules
+        if (onModuleCreated) {
+          onModuleCreated()
+        }
+        // Also refresh the router as backup
         router.refresh()
       } else {
         console.error("Failed to create module:", result.error)

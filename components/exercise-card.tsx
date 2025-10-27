@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { ChevronLeft, ChevronRight, Edit, Trash2, MoreVertical, BookOpen, Check, X, Camera } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
@@ -18,12 +18,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import { ImageUploadDialog } from "@/components/image-upload-dialog"
 import { AddOptionDialog } from "@/components/add-option-dialog"
 import { SortableOptionsList } from "@/components/sortable-options-list"
 import { type Exercise } from "@/app/actions/exercises"
 import { type Alternative } from "@/app/actions/alternatives"
 import { deleteExercise, updateExercise, updateExerciseImageDisplaySize } from "@/app/actions/exercises"
+import { uploadImageToStorage } from "@/app/actions/storage"
 import { useRouter } from "next/navigation"
 
 interface ExerciseCardProps {
@@ -55,8 +55,10 @@ export function ExerciseCard({
   const [isDeleting, setIsDeleting] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editedQuestion, setEditedQuestion] = useState("")
-  const [imageDialogOpen, setImageDialogOpen] = useState(false)
   const [imageSize, setImageSize] = useState<"aspect-ratio" | "large" | "medium" | "small">(currentExercise.image_display_size as "aspect-ratio" | "large" | "medium" | "small" || "aspect-ratio")
+  const [isUploading, setIsUploading] = useState(false)
+  const [isDragOver, setIsDragOver] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
   // Update image size when exercise changes
@@ -126,6 +128,86 @@ export function ExerciseCard({
     } catch (error) {
       console.error("Error updating image:", error)
       alert("An error occurred while updating the image. Please try again.")
+    }
+  }
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file.')
+      return
+    }
+
+    // Validate file size (5MB limit)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB.')
+      return
+    }
+
+    setIsUploading(true)
+    
+    try {
+      const result = await uploadImageToStorage(file)
+      
+      if (result.success && result.url) {
+        await handleImageChange(result.url)
+      } else {
+        console.error("Failed to upload image:", result.error)
+        alert("Failed to upload image. Please try again.")
+      }
+    } catch (error) {
+      console.error("Error uploading image:", error)
+      alert("An error occurred while uploading the image. Please try again.")
+    } finally {
+      setIsUploading(false)
+      // Reset the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+    }
+  }
+
+  const handleImageClick = () => {
+    if (isUploading) return
+    fileInputRef.current?.click()
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (e.dataTransfer.types.includes('Files')) {
+      setIsDragOver(true)
+    }
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragOver(false)
+
+    if (isUploading) return
+
+    const files = Array.from(e.dataTransfer.files)
+    const imageFile = files.find(file => file.type.startsWith('image/'))
+
+    if (imageFile) {
+      // Create a synthetic event to reuse the existing upload handler
+      const syntheticEvent = {
+        target: { files: [imageFile] }
+      } as unknown as React.ChangeEvent<HTMLInputElement>
+      
+      handleFileUpload(syntheticEvent)
+    } else {
+      alert('Please drop an image file.')
     }
   }
 
@@ -202,8 +284,13 @@ export function ExerciseCard({
         <CardHeader className="pb-3">
           {/* Clickable Image - Full Width with Adjusted Height */}
           <div 
-            className="w-full bg-[#1a1a1a] border border-gray-200/10 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-800 transition-colors group relative mb-4 overflow-hidden"
-            onClick={() => setImageDialogOpen(true)}
+            className={`w-full bg-[#1a1a1a] border border-gray-200/10 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-800 transition-colors group relative mb-4 overflow-hidden ${
+              isDragOver ? 'border-emerald-500 bg-emerald-500/10' : ''
+            }`}
+            onClick={handleImageClick}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
           >
              {currentExercise.image_url ? (
                <img
@@ -217,7 +304,22 @@ export function ExerciseCard({
                />
              ) : (
                <div className="w-full h-40 flex items-center justify-center">
-                 <Camera className="w-12 h-12 text-gray-600" />
+                 {isUploading ? (
+                   <div className="flex flex-col items-center gap-2">
+                     <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+                     <span className="text-sm text-gray-400">Uploading...</span>
+                   </div>
+                 ) : isDragOver ? (
+                   <div className="flex flex-col items-center gap-2">
+                     <Camera className="w-12 h-12 text-emerald-500" />
+                     <span className="text-sm text-emerald-500 font-medium">Drop image here</span>
+                   </div>
+                 ) : (
+                   <div className="flex flex-col items-center gap-2">
+                     <Camera className="w-12 h-12 text-gray-600" />
+                     <span className="text-sm text-gray-400">Click or drag image here</span>
+                   </div>
+                 )}
                </div>
              )}
             {/* Camera overlay on hover */}
@@ -270,7 +372,8 @@ export function ExerciseCard({
                     <Input
                       value={editedQuestion}
                       onChange={(e) => setEditedQuestion(e.target.value)}
-                      className="text-base bg-[#1a1a1a] border-gray-200/10 text-white"
+                      placeholder="Enter the question for this exercise..."
+                      className="text-base bg-[#1a1a1a] border-gray-200/10 text-white placeholder:text-gray-500"
                       autoFocus
                     />
                     <div className="flex gap-2">
@@ -298,7 +401,7 @@ export function ExerciseCard({
                     className="text-base cursor-pointer hover:bg-gray-800/50 p-2 rounded transition-colors text-gray-300"
                     onClick={handleEditStart}
                   >
-                    {currentExercise.question}
+                    {currentExercise.question || "Add a question for this exercise..."}
                   </CardDescription>
                 )}
               </div>
@@ -362,12 +465,13 @@ export function ExerciseCard({
         <ChevronRight className="h-4 w-4" />
       </Button>
 
-      {/* Image Upload Dialog */}
-      <ImageUploadDialog
-        open={imageDialogOpen}
-        onOpenChange={setImageDialogOpen}
-        currentImageUrl={currentExercise.image_url || ""}
-        onImageChange={handleImageChange}
+      {/* Hidden File Input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleFileUpload}
+        className="hidden"
       />
     </div>
   )

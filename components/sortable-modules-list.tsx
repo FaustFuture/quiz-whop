@@ -15,7 +15,7 @@ import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  horizontalListSortingStrategy,
+  rectSortingStrategy,
 } from "@dnd-kit/sortable"
 import { SortableModuleCard } from "@/components/sortable-module-card"
 import { type Module } from "@/app/actions/modules"
@@ -25,9 +25,10 @@ import { useRouter } from "next/navigation"
 interface SortableModulesListProps {
   modules: Module[]
   companyId: string
+  onModuleDeleted?: () => void
 }
 
-export function SortableModulesList({ modules, companyId }: SortableModulesListProps) {
+export function SortableModulesList({ modules, companyId, onModuleDeleted }: SortableModulesListProps) {
   const [items, setItems] = useState(modules)
   const [activeId, setActiveId] = useState<string | null>(null)
   const router = useRouter()
@@ -90,14 +91,15 @@ export function SortableModulesList({ modules, companyId }: SortableModulesListP
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <SortableContext items={items.map(item => item.id)} strategy={horizontalListSortingStrategy}>
-        <div className="flex flex-wrap gap-4">
+      <SortableContext items={items.map(item => item.id)} strategy={rectSortingStrategy}>
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {items.map((module) => (
             <SortableModuleCard 
               key={module.id} 
               module={module} 
               companyId={companyId}
               isActive={activeId === module.id}
+              onModuleDeleted={onModuleDeleted}
             />
           ))}
         </div>

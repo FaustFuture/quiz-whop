@@ -35,7 +35,7 @@ export async function MemberModulesView({ companyId, userId }: MemberModulesView
           </p>
         </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           {modules.map((module) => (
             <ModuleExamCard 
               key={module.id} 
@@ -62,13 +62,13 @@ async function ModuleExamCard({ module, companyId, userId }: ModuleExamCardProps
   const hasResult = result !== null
   
   return (
-    <Card className="relative group hover:shadow-xl transition-all border-gray-200/10 bg-[#141414] hover:bg-[#1a1a1a] hover:border-emerald-500/50 flex flex-col">
+    <Card className="relative group hover:shadow-xl transition-all border-gray-200/10 bg-[#141414] hover:bg-[#1a1a1a] hover:border-emerald-500/50 flex flex-col min-h-64">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
             <CardTitle className="text-2xl text-white">{module.title}</CardTitle>
             {module.description && (
-              <CardDescription className="mt-2 line-clamp-2 text-gray-400">
+              <CardDescription className="mt-3 line-clamp-3 text-gray-400 text-base">
                 {module.description}
               </CardDescription>
             )}

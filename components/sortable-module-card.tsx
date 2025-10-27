@@ -26,9 +26,10 @@ interface SortableModuleCardProps {
   module: Module
   companyId: string
   isActive?: boolean
+  onModuleDeleted?: () => void
 }
 
-export function SortableModuleCard({ module, companyId, isActive = false }: SortableModuleCardProps) {
+export function SortableModuleCard({ module, companyId, isActive = false, onModuleDeleted }: SortableModuleCardProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const router = useRouter()
 
@@ -59,6 +60,11 @@ export function SortableModuleCard({ module, companyId, isActive = false }: Sort
       const result = await deleteModule(module.id, companyId)
       
       if (result.success) {
+        // Call the callback to refetch modules
+        if (onModuleDeleted) {
+          onModuleDeleted()
+        }
+        // Also refresh the router as backup
         router.refresh()
       } else {
         console.error("Failed to delete module:", result.error)
@@ -80,7 +86,7 @@ export function SortableModuleCard({ module, companyId, isActive = false }: Sort
     <Card 
       ref={setNodeRef}
       style={style}
-      className={`relative group hover:shadow-xl transition-all cursor-pointer border-gray-200/10 bg-[#141414] hover:bg-[#1a1a1a] hover:border-emerald-500/50 w-80 h-48 ${
+      className={`relative group hover:shadow-xl transition-all cursor-pointer border-gray-200/10 bg-[#141414] hover:bg-[#1a1a1a] hover:border-emerald-500/50 w-full h-64 ${
         isDragging ? 'opacity-50 z-50' : ''
       }`}
       onClick={handleCardClick}
@@ -88,9 +94,9 @@ export function SortableModuleCard({ module, companyId, isActive = false }: Sort
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
-            <CardTitle className="text-xl text-white">{module.title}</CardTitle>
+            <CardTitle className="text-2xl text-white">{module.title}</CardTitle>
             {module.description && (
-              <CardDescription className="mt-2 line-clamp-2 text-gray-400">
+              <CardDescription className="mt-3 line-clamp-3 text-gray-400 text-base">
                 {module.description}
               </CardDescription>
             )}
@@ -138,7 +144,7 @@ export function SortableModuleCard({ module, companyId, isActive = false }: Sort
         </div>
       </CardHeader>
       <CardContent>
-        <div className="flex items-center gap-2 text-sm text-gray-500">
+        <div className="flex items-center gap-2 text-base text-gray-400">
           <span>Created {new Date(module.created_at).toLocaleDateString()}</span>
         </div>
       </CardContent>

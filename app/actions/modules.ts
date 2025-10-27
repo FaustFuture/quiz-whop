@@ -42,7 +42,7 @@ export async function createModule(companyId: string, title: string, description
       return { success: false, error: error.message }
     }
 
-    revalidatePath(`/dashboard/${companyId}`)
+    revalidatePath(`/dashboard/${companyId}`, "page")
     return { success: true, data }
   } catch (error) {
     console.error("Error creating module:", error)
@@ -99,7 +99,22 @@ export async function updateModuleOrder(moduleId: string, newOrder: number, comp
     const [movedModule] = newOrderArray.splice(oldIndex, 1)
     newOrderArray.splice(newOrder, 0, movedModule)
 
-    // Update all modules with new order values
+    // First, set all modules to temporary large order values to avoid conflicts
+    const tempOrderStart = 10000 // Use large numbers that won't conflict
+    for (let i = 0; i < allModules.length; i++) {
+      const { error } = await supabase
+        .from("modules")
+        .update({ order: tempOrderStart + i })
+        .eq("id", allModules[i].id)
+        .eq("company_id", companyId)
+
+      if (error) {
+        console.error("Error setting temporary order:", error)
+        return { success: false, error: error.message }
+      }
+    }
+
+    // Then update all modules with their final order values
     for (let i = 0; i < newOrderArray.length; i++) {
       const { error } = await supabase
         .from("modules")
@@ -113,7 +128,7 @@ export async function updateModuleOrder(moduleId: string, newOrder: number, comp
       }
     }
 
-    revalidatePath(`/dashboard/${companyId}`)
+    revalidatePath(`/dashboard/${companyId}`, "page")
     return { success: true }
   } catch (error) {
     console.error("Error updating module order:", error)
@@ -134,7 +149,7 @@ export async function deleteModule(moduleId: string, companyId: string) {
       return { success: false, error: error.message }
     }
 
-    revalidatePath(`/dashboard/${companyId}`)
+    revalidatePath(`/dashboard/${companyId}`, "page")
     return { success: true }
   } catch (error) {
     console.error("Error deleting module:", error)

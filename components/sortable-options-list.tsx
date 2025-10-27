@@ -105,13 +105,21 @@ export function SortableOptionsList({ alternatives, exerciseId }: SortableOption
     >
       <SortableContext items={items.map(item => item.id)} strategy={verticalListSortingStrategy}>
         <div className="space-y-2">
-          {items.map((alternative) => (
-            <SortableOptionItem 
-              key={alternative.id} 
-              option={alternative} 
-              exerciseId={exerciseId}
-            />
-          ))}
+          {items.length === 0 ? (
+            <div className="border-2 border-dashed border-gray-200/10 rounded-lg p-6 text-center">
+              <p className="text-gray-400 text-sm">
+                No options yet. Click "Add Option" to create answer choices for this exercise.
+              </p>
+            </div>
+          ) : (
+            items.map((alternative) => (
+              <SortableOptionItem 
+                key={alternative.id} 
+                option={alternative} 
+                exerciseId={exerciseId}
+              />
+            ))
+          )}
         </div>
       </SortableContext>
     </DndContext>
