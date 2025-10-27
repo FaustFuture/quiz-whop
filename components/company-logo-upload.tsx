@@ -115,7 +115,7 @@ export function CompanyLogoUpload({
       {/* Logo Display/Upload Area */}
       <div 
         className={`relative w-12 h-12 rounded-lg overflow-hidden cursor-pointer group transition-all ${
-          isDragOver ? 'ring-2 ring-emerald-500 ring-offset-2 ring-offset-[#0a0a0a]' : ''
+          isDragOver ? 'ring-2 ring-emerald-500 ring-offset-2 ring-offset-background' : ''
         }`}
         onClick={handleLogoClick}
         onDragOver={handleDragOver}
@@ -133,13 +133,13 @@ export function CompanyLogoUpload({
             }}
           />
         ) : (
-          <div className="w-full h-full bg-gray-600 flex items-center justify-center">
+          <div className="w-full h-full bg-muted flex items-center justify-center">
             <Camera className="w-6 h-6 text-gray-400" />
           </div>
         )}
         
         {/* Fallback for broken images */}
-        <div className="hidden w-full h-full bg-gray-600 flex items-center justify-center">
+        <div className="hidden w-full h-full bg-muted flex items-center justify-center">
           <Camera className="w-6 h-6 text-gray-400" />
         </div>
 
@@ -154,7 +154,7 @@ export function CompanyLogoUpload({
       </div>
 
       {/* Company Name */}
-      <h1 className="text-xl font-semibold text-white">{companyName}</h1>
+      <h1 className="text-xl font-semibold text-foreground">{companyName}</h1>
 
       {/* Hidden File Input */}
       <input

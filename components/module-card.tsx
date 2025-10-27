@@ -59,7 +59,7 @@ export function ModuleCard({ module, companyId }: ModuleCardProps) {
 
   return (
     <Card 
-      className="relative group hover:shadow-md transition-all cursor-pointer hover:border-primary/50"
+      className="relative group hover:shadow-md cursor-pointer hover:border-primary/50"
       onClick={handleCardClick}
     >
       <CardHeader className="pb-3">
@@ -77,7 +77,7 @@ export function ModuleCard({ module, companyId }: ModuleCardProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="h-8 w-8 opacity-0 group-hover:opacity-100"
                 disabled={isDeleting}
                 onClick={(e) => e.stopPropagation()}
               >

@@ -280,17 +280,17 @@ export function ExerciseCard({
         size="icon"
         onClick={onNavigatePrevious}
         disabled={!hasPrevious}
-        className="shrink-0 border-gray-200/10 bg-[#141414] text-gray-400 hover:text-white hover:bg-gray-800 hover:border-emerald-500"
+        className="shrink-0 border-border bg-muted text-muted-foreground hover:text-foreground hover:bg-accent hover:border-emerald-500"
       >
         <ChevronLeft className="h-4 w-4" />
       </Button>
 
       {/* Exercise Card */}
-      <Card className="flex-1 min-h-[400px] w-[600px] border-gray-200/10 bg-[#141414]">
+      <Card className="flex-1 min-h-[400px] w-[600px] border-border bg-card">
         <CardHeader className="pb-3">
           {/* Clickable Image - Full Width with Adjusted Height */}
           <div 
-            className={`w-full bg-[#1a1a1a] border border-gray-200/10 rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-800 transition-colors group relative mb-4 overflow-hidden ${
+            className={`w-full bg-muted border border-border rounded-lg flex items-center justify-center cursor-pointer hover:bg-accent group relative mb-4 overflow-hidden ${
               isDragOver ? 'border-emerald-500 bg-emerald-500/10' : ''
             }`}
             onClick={handleImageClick}
@@ -336,25 +336,25 @@ export function ExerciseCard({
 
           {/* Image Size Selector */}
           {currentExercise.image_url && (
-            <div className="mb-4">
+            <div className="mb-8">
               <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-400">Image Size:</label>
+                <label className="text-sm text-muted-foreground">Image Size:</label>
                 <Select value={imageSize} onValueChange={handleImageSizeChange}>
-                  <SelectTrigger className="w-40 bg-[#1a1a1a] border-gray-200/10 text-white">
+                  <SelectTrigger className="w-40 bg-muted border-border text-foreground">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1a1a1a] border-gray-200/10">
-                    <SelectItem value="aspect-ratio" className="text-white focus:bg-gray-800">
-                      Aspect Ratio
+                  <SelectContent className="bg-muted border-border">
+                    <SelectItem value="aspect-ratio" className="text-foreground focus:bg-accent">
+                      Original Size
                     </SelectItem>
-                    <SelectItem value="large" className="text-white focus:bg-gray-800">
-                      Large (50vh)
+                    <SelectItem value="large" className="text-foreground focus:bg-accent">
+                      Large
                     </SelectItem>
-                    <SelectItem value="medium" className="text-white focus:bg-gray-800">
-                      Medium (35vh)
+                    <SelectItem value="medium" className="text-foreground focus:bg-accent">
+                      Medium
                     </SelectItem>
-                    <SelectItem value="small" className="text-white focus:bg-gray-800">
-                      Small (25vh)
+                    <SelectItem value="small" className="text-foreground focus:bg-accent">
+                      Small
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -362,14 +362,8 @@ export function ExerciseCard({
             </div>
           )}
           
-          <div className="flex items-start justify-between gap-2">
+          <div className="flex items-center justify-between gap-2">
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-3">
-                <CardTitle className="text-lg text-white">Exercise {currentIndex + 1}</CardTitle>
-                <span className="text-sm text-gray-500">
-                  ({currentExercise.weight} point{currentExercise.weight !== 1 ? 's' : ''})
-                </span>
-              </div>
               
               {/* Editable Question */}
               <div className="space-y-2">
@@ -379,7 +373,7 @@ export function ExerciseCard({
                       value={editedQuestion}
                       onChange={(e) => setEditedQuestion(e.target.value)}
                       placeholder="Enter the question for this exercise..."
-                      className="text-base bg-[#1a1a1a] border-gray-200/10 text-white placeholder:text-gray-500"
+                      className="text-base bg-background border border-border focus-visible:border-emerald-500 text-foreground placeholder:text-muted-foreground"
                       autoFocus
                     />
                     {!editedQuestion.trim() && (
@@ -399,7 +393,7 @@ export function ExerciseCard({
                         size="sm"
                         variant="outline"
                         onClick={handleEditCancel}
-                        className="h-8 px-3 bg-black border-gray-200/10 text-gray-400 hover:text-white hover:bg-gray-800"
+                        className="h-8 px-3 bg-muted border-border text-muted-foreground hover:text-foreground hover:bg-accent"
                       >
                         <X className="w-3 h-3 mr-1" />
                         Cancel
@@ -408,7 +402,7 @@ export function ExerciseCard({
                   </div>
                 ) : (
                   <CardDescription 
-                    className="text-base cursor-pointer hover:bg-gray-800/50 p-2 rounded transition-colors text-gray-300"
+                    className="text-base cursor-pointer p-2 rounded text-muted-foreground border border-border bg-muted hover:bg-accent hover:border-emerald-500/50"
                     onClick={handleEditStart}
                   >
                     {currentExercise.question || "Add a question for this exercise..."}
@@ -424,20 +418,20 @@ export function ExerciseCard({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-gray-400 hover:text-white hover:bg-gray-800"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-accent"
                   disabled={isDeleting}
                 >
                   <MoreVertical className="h-4 w-4" />
                   <span className="sr-only">Open menu</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-[#1a1a1a] border-gray-200/10">
-                <DropdownMenuItem onClick={handleEditStart} className="text-gray-300 focus:bg-gray-800 focus:text-white">
+              <DropdownMenuContent align="end" className="bg-muted border-border">
+                <DropdownMenuItem onClick={handleEditStart} className="text-muted-foreground focus:bg-accent focus:text-foreground">
                   <Edit className="mr-2 h-4 w-4" />
                   Edit Question
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className="text-red-400 focus:text-red-400 focus:bg-red-500/10"
+                  className="text-red-500 focus:text-red-500 focus:bg-red-500/10"
                   onClick={handleDelete}
                   disabled={isDeleting}
                 >
@@ -452,7 +446,7 @@ export function ExerciseCard({
               {/* Options Section */}
               <div className="flex-1 mb-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h4 className="text-sm font-medium text-white">Options ({alternatives.length})</h4>
+                  <h4 className="text-sm font-medium text-foreground">Options ({alternatives.length})</h4>
                   <AddOptionDialog exerciseId={currentExercise.id} />
                 </div>
                 <SortableOptionsList 
@@ -461,7 +455,7 @@ export function ExerciseCard({
                 />
               </div>
           
-          <div className="flex items-center gap-2 text-sm text-gray-500 mt-auto">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-auto">
             <span>Created {new Date(currentExercise.created_at).toLocaleDateString()}</span>
           </div>
         </CardContent>
@@ -473,7 +467,7 @@ export function ExerciseCard({
         size="icon"
         onClick={onNavigateNext}
         disabled={!hasNext}
-        className="shrink-0 border-gray-200/10 bg-[#141414] text-gray-400 hover:text-white hover:bg-gray-800 hover:border-emerald-500"
+        className="shrink-0 border-border bg-muted text-muted-foreground hover:text-foreground hover:bg-accent hover:border-emerald-500"
       >
         <ChevronRight className="h-4 w-4" />
       </Button>
