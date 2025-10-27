@@ -29,7 +29,7 @@ export default function RootLayout({
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
 			>
-				<ThemeProvider defaultTheme="system" storageKey="quiz-theme">
+				<ThemeProvider defaultTheme="dark" storageKey="quiz-theme">
 					<WhopApp>{children}</WhopApp>
 				</ThemeProvider>
 			</body>

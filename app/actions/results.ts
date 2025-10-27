@@ -214,6 +214,7 @@ export async function getRecentResults(
     const results = data?.map((item: any) => ({
       id: item.id,
       user_id: item.user_id,
+      user_name: item.user_name,
       module_id: item.module_id,
       score: item.score,
       total_questions: item.total_questions,

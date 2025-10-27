@@ -155,26 +155,10 @@ export function ResultsSidebar({ results, modules }: ResultsSidebarProps) {
       <Card className="h-full border-gray-200/10 bg-transparent">
         <CardHeader className="pb-4 border-b border-gray-200/10">
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-xl flex items-center gap-2 text-white">
-                <Trophy className="h-5 w-5 text-emerald-500" />
-                Latest Results
-              </CardTitle>
-              <Button
-                onClick={generateCSV}
-                size="sm"
-                className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-xs px-3 py-1.5 h-8"
-                disabled={filteredResults.length === 0 || isExporting}
-              >
-                <Download className="h-3.5 w-3.5" />
-                {isExporting 
-                  ? "Exporting..." 
-                  : selectedModuleId === "all" 
-                    ? "Summary" 
-                    : "Detailed"
-                }
-              </Button>
-            </div>
+            <CardTitle className="text-xl flex items-center gap-2 text-white">
+              <Trophy className="h-5 w-5 text-emerald-500" />
+              Latest Results
+            </CardTitle>
           
             {/* Module Filter */}
             <div className="space-y-3">
@@ -188,28 +172,45 @@ export function ResultsSidebar({ results, modules }: ResultsSidebarProps) {
                   : "Detailed export: Includes individual question answers and explanations"
                 }
               </p>
-              <Select value={selectedModuleId} onValueChange={setSelectedModuleId}>
-                <SelectTrigger className="bg-[#1a1a1a] border-gray-200/10 text-white h-9">
-                  <SelectValue placeholder="All modules" />
-                </SelectTrigger>
-                <SelectContent className="bg-[#1a1a1a] border-gray-200/10">
-                  <SelectItem value="all" className="text-white focus:bg-gray-800">
-                    All modules ({results.length})
-                  </SelectItem>
-                  {modules.map((module) => {
-                    const moduleResultCount = results.filter(r => r.module_id === module.id).length
-                    return (
-                      <SelectItem 
-                        key={module.id} 
-                        value={module.id}
-                        className="text-white focus:bg-gray-800"
-                      >
-                        {module.title} ({moduleResultCount})
-                      </SelectItem>
-                    )
-                  })}
-                </SelectContent>
-              </Select>
+              <div className="flex items-center gap-2">
+                <Select value={selectedModuleId} onValueChange={setSelectedModuleId}>
+                  <SelectTrigger className="bg-[#1a1a1a] border-gray-200/10 text-white h-9">
+                    <SelectValue placeholder="All modules" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-[#1a1a1a] border-gray-200/10">
+                    <SelectItem value="all" className="text-white focus:bg-gray-800">
+                      All modules ({results.length})
+                    </SelectItem>
+                    {modules.map((module) => {
+                      const moduleResultCount = results.filter(r => r.module_id === module.id).length
+                      return (
+                        <SelectItem 
+                          key={module.id} 
+                          value={module.id}
+                          className="text-white focus:bg-gray-800"
+                        >
+                          {module.title} ({moduleResultCount})
+                        </SelectItem>
+                      )
+                    })}
+                  </SelectContent>
+                </Select>
+                <Button
+                  onClick={generateCSV}
+                  size="icon"
+                  className="h-9 w-9 bg-emerald-600 hover:bg-emerald-700"
+                  disabled={filteredResults.length === 0 || isExporting}
+                  title={
+                    isExporting 
+                      ? "Exporting..." 
+                      : selectedModuleId === "all" 
+                        ? "Download summary export with basic results for all modules" 
+                        : "Download detailed export with individual question answers and explanations"
+                  }
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </CardHeader>

@@ -299,7 +299,7 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
       </div>
 
       {/* Question Card */}
-      <Card className="mb-6">
+      <Card className="mb-6 border-gray-200/10">
         <CardHeader>
            {currentQuestion.image_url && (
              <div className="relative w-full mb-4 rounded-lg overflow-hidden bg-[#1a1a1a] border border-gray-200/10">
@@ -403,7 +403,7 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
                   ? "w-8 bg-primary"
                   : isAnswered
                   ? "w-2 bg-green-500"
-                  : "w-2 bg-gray-300"
+                  : "w-2 bg-secondary"
               }`}
             />
           )
