@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { Check, X, ChevronRight, Maximize2 } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -323,33 +322,6 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
              </div>
            )}
 
-          {/* Image Size Selector */}
-          {currentQuestion.image_url && (
-            <div className="mb-4">
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-400">Image Size:</label>
-                <Select value={imageSize} onValueChange={(value: "aspect-ratio" | "large" | "medium" | "small") => setImageSize(value)}>
-                  <SelectTrigger className="w-40 bg-[#1a1a1a] border-gray-200/10 text-white">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-[#1a1a1a] border-gray-200/10">
-                    <SelectItem value="aspect-ratio" className="text-white focus:bg-gray-800">
-                      Aspect Ratio
-                    </SelectItem>
-                    <SelectItem value="large" className="text-white focus:bg-gray-800">
-                      Large (50vh)
-                    </SelectItem>
-                    <SelectItem value="medium" className="text-white focus:bg-gray-800">
-                      Medium (35vh)
-                    </SelectItem>
-                    <SelectItem value="small" className="text-white focus:bg-gray-800">
-                      Small (25vh)
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          )}
 
           <CardTitle className="text-2xl">
             {currentQuestion.question}

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ChevronLeft, ChevronRight, Edit, Trash2, MoreVertical, BookOpen, Check, X, Camera } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
@@ -58,6 +58,11 @@ export function ExerciseCard({
   const [imageDialogOpen, setImageDialogOpen] = useState(false)
   const [imageSize, setImageSize] = useState<"aspect-ratio" | "large" | "medium" | "small">(currentExercise.image_display_size as "aspect-ratio" | "large" | "medium" | "small" || "aspect-ratio")
   const router = useRouter()
+
+  // Update image size when exercise changes
+  useEffect(() => {
+    setImageSize(currentExercise.image_display_size as "aspect-ratio" | "large" | "medium" | "small" || "aspect-ratio")
+  }, [currentExercise.image_display_size, currentIndex])
 
   const getImageHeightClass = () => {
     switch (imageSize) {
