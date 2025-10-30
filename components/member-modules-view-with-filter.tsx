@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -13,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Play, RotateCcw, Trophy } from "lucide-react"
 import Link from "next/link"
 import { type Module } from "@/app/actions/modules"
+import { getUserRetakeGrants } from "@/app/actions/users"
 
 interface MemberModulesViewWithFilterProps {
   companyId: string
@@ -28,6 +29,21 @@ export function MemberModulesViewWithFilter({
   userResults 
 }: MemberModulesViewWithFilterProps) {
   const [filter, setFilter] = useState<'all' | 'module' | 'exam'>('all')
+  const [retakeAllowed, setRetakeAllowed] = useState<Record<string, boolean>>({})
+
+  useEffect(() => {
+    let mounted = true
+    const load = async () => {
+      const res = await getUserRetakeGrants(userId)
+      if (mounted && res.success) {
+        const map: Record<string, boolean> = {}
+        for (const id of (res.data as string[])) map[id] = true
+        setRetakeAllowed(map)
+      }
+    }
+    load()
+    return () => { mounted = false }
+  }, [userId])
 
   const filteredModules = modules.filter((m) => {
     if (filter === 'all') return true
@@ -165,7 +181,7 @@ function ModuleExamCard({ module, companyId, userId, hasResult, result }: Module
                   </Button>
                 </Link>
               ) : (
-                <Button className="w-full gap-2" variant="secondary" disabled>
+                <Button className="w-full gap-2" variant="secondary" disabled={!retakeAllowed[module.id]}>
                   <RotateCcw className="h-4 w-4" />
                   Retake Exam
                 </Button>

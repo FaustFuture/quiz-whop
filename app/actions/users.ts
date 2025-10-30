@@ -190,25 +190,51 @@ export async function hasExamRetakeAccess(moduleId: string, userId: string) {
 
 export async function listExamRetakes(moduleId: string) {
   try {
-    const { data, error } = await supabase
+    // Fetch raw grants first
+    const { data: grants, error: gErr } = await supabase
       .from("exam_retakes")
-      .select("id, user_id, granted_by, granted_at, used_at, users:users!exam_retakes_user_id_fkey(whop_user_id, username, name, email, avatar_url)")
+      .select("id, user_id, granted_by, granted_at, used_at")
       .eq("module_id", moduleId)
       .order("granted_at", { ascending: false })
+    if (gErr) return { success: false, error: gErr.message, data: [] }
 
-    if (error) return { success: false, error: error.message, data: [] }
+    const userIds = Array.from(new Set((grants || []).map((g: any) => g.user_id)))
+    let usersById: Record<string, any> = {}
+    if (userIds.length > 0) {
+      const { data: usersData } = await supabase
+        .from("users")
+        .select("whop_user_id, username, name, email, avatar_url")
+        .in("whop_user_id", userIds)
+      for (const u of usersData || []) usersById[u.whop_user_id] = u
+    }
 
-    const rows = (data || []).map((r: any) => ({
+    const rows = (grants || []).map((r: any) => ({
       id: r.id,
       user_id: r.user_id,
-      username: r.users?.username || null,
-      name: r.users?.name || null,
+      username: usersById[r.user_id]?.username || null,
+      name: usersById[r.user_id]?.name || null,
       granted_at: r.granted_at,
       used_at: r.used_at || null,
     }))
     return { success: true, data: rows }
   } catch (e) {
     return { success: false, error: "Failed to list exam retakes", data: [] }
+  }
+}
+
+export async function getUserRetakeGrants(userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from("exam_retakes")
+      .select("module_id, used_at")
+      .eq("user_id", userId)
+      .is("used_at", null)
+
+    if (error) return { success: false, error: error.message, data: [] }
+    const moduleIds = (data || []).map((r: any) => r.module_id)
+    return { success: true, data: moduleIds }
+  } catch (e) {
+    return { success: false, error: "Failed to read retake grants", data: [] }
   }
 }
 
