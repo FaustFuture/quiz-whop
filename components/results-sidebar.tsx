@@ -286,11 +286,11 @@ export function ResultsSidebar({ results, modules }: ResultsSidebarProps) {
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-sm text-foreground">
                 <Filter className="h-4 w-4" />
-                <span className="text-foreground">Filter by {selectedType === "exam" ? "Exam" : selectedType === "module" ? "Module" : "Module/Exam"}</span>
+                <span className="text-foreground">Filter by {selectedType === "exam" ? "Exam" : selectedType === "module" ? "Quiz" : "Quiz/Exam"}</span>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 {selectedModuleId === "all" 
-                  ? "Summary export: Basic results for all modules" 
+                  ? "Summary export: Basic results for all quizzes" 
                   : "Detailed export: Includes individual question answers and explanations"
                 }
               </p>
@@ -302,18 +302,18 @@ export function ResultsSidebar({ results, modules }: ResultsSidebarProps) {
                   </SelectTrigger>
                   <SelectContent className="bg-muted border-border">
                     <SelectItem value="all" className="text-foreground focus:bg-accent">All types</SelectItem>
-                    <SelectItem value="module" className="text-foreground focus:bg-accent">Module</SelectItem>
+                    <SelectItem value="module" className="text-foreground focus:bg-accent">Quiz</SelectItem>
                     <SelectItem value="exam" className="text-foreground focus:bg-accent">Exam</SelectItem>
                   </SelectContent>
                 </Select>
 
                 <Select value={selectedModuleId} onValueChange={setSelectedModuleId}>
                   <SelectTrigger className="bg-muted border-border text-foreground h-9">
-                    <SelectValue placeholder="All modules" />
+                    <SelectValue placeholder="All quizzes" />
                   </SelectTrigger>
                   <SelectContent className="bg-muted border-border">
                     <SelectItem value="all" className="text-foreground focus:bg-accent">
-                      {selectedType === "exam" ? "All exams" : selectedType === "module" ? "All modules" : "All modules/exams"} ({filteredResults.length})
+                      {selectedType === "exam" ? "All exams" : selectedType === "module" ? "All quizzes" : "All Quizzes and Exams"} ({filteredResults.length})
                     </SelectItem>
                     {selectableModules.map((module) => {
                       const moduleResultCount = filteredResults.filter(r => r.module_id === module.id).length
@@ -420,7 +420,7 @@ export function ResultsSidebar({ results, modules }: ResultsSidebarProps) {
                           isExporting
                             ? "Exporting..."
                             : selectedModuleId === "all"
-                              ? "Download summary export with basic results for all modules"
+                              ? "Download summary export with basic results for all quizzes"
                               : "Download detailed export with individual question answers and explanations"
                         }
                       >
@@ -448,12 +448,12 @@ export function ResultsSidebar({ results, modules }: ResultsSidebarProps) {
                 <p className="text-sm text-muted-foreground">
                   {selectedModuleId === "all" 
                     ? "No exam results yet." 
-                    : "No results for this module."}
+                    : "No results for this quiz."}
                 </p>
                 <p className="text-xs mt-2 text-muted-foreground">
                   {selectedModuleId === "all"
                     ? "Results will appear here when users complete exams."
-                    : "Try selecting a different module or view all results."}
+                    : "Try selecting a different quiz or view all results."}
                 </p>
               </div>
             ) : (
@@ -487,7 +487,7 @@ export function ResultsSidebar({ results, modules }: ResultsSidebarProps) {
                                 : 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
                             }`}
                           >
-                            {moduleIdToType[result.module_id] === 'exam' ? 'Exam' : 'Module'}
+                            {moduleIdToType[result.module_id] === 'exam' ? 'Exam' : 'Quiz'}
                           </span>
                         </div>
                         

@@ -37,7 +37,7 @@ export function ModulesSection({ companyId, initialModules }: ModulesSectionProp
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight text-foreground">
-          {filter === 'all' ? 'All' : filter === 'exam' ? 'Exams' : 'Modules'}
+          {filter === 'all' ? 'All Quizzes and Exams' : filter === 'exam' ? 'Exams' : 'Quizzes'}
         </h2>
         <div className="flex items-center gap-3">
           <div className="w-40">
@@ -47,7 +47,7 @@ export function ModulesSection({ companyId, initialModules }: ModulesSectionProp
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All</SelectItem>
-                <SelectItem value="module">Module</SelectItem>
+                <SelectItem value="module">Quiz</SelectItem>
                 <SelectItem value="exam">Exam</SelectItem>
               </SelectContent>
             </Select>
@@ -58,12 +58,12 @@ export function ModulesSection({ companyId, initialModules }: ModulesSectionProp
       
       {isLoading ? (
         <div className="rounded-xl border border-border bg-card p-12 text-center">
-          <p className="text-gray-400">Loading modules...</p>
+          <p className="text-gray-400">Loading quizzes...</p>
         </div>
       ) : modules.length === 0 ? (
         <div className="rounded-xl border border-border bg-card p-12 text-center">
           <p className="text-gray-400">
-            No modules yet. Click "Add Module" to create your first quiz module.
+            No quizzes yet. Click "Add Module" to create your first quiz.
           </p>
         </div>
       ) : (

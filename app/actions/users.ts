@@ -143,4 +143,27 @@ export async function searchCachedUsers(query: string, limit: number = 10) {
   }
 }
 
+export async function hasExamRetakeAccess(moduleId: string, userId: string) {
+  try {
+    const { data, error } = await supabase
+      .from("exam_retakes")
+      .select("id, used_at")
+      .eq("module_id", moduleId)
+      .eq("user_id", userId)
+      .single()
+    
+    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
+      return { success: false, error: error.message }
+    }
+    
+    // If no retake record found, user doesn't have access
+    if (!data) return { success: true, data: false }
+    
+    // If retake exists and hasn't been used, user has access
+    return { success: true, data: !data.used_at }
+  } catch (e) {
+    return { success: false, error: "Failed to check retake access" }
+  }
+}
+
 
