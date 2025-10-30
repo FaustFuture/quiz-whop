@@ -9,6 +9,8 @@ export type Alternative = {
   content: string
   is_correct: boolean
   explanation: string | null
+  image_url?: string | null
+  image_urls?: string[] | null
   order: number
   created_at: string
 }
@@ -17,7 +19,9 @@ export async function createAlternative(
   exerciseId: string,
   content: string,
   isCorrect: boolean = false,
-  explanation: string = ""
+  explanation: string = "",
+  imageUrl?: string | null,
+  imageUrls?: string[] | null
 ) {
   try {
     // Get existing alternatives for this exercise
@@ -50,6 +54,10 @@ export async function createAlternative(
           is_correct: true, // Set as correct immediately
           explanation: explanation || null,
           order: nextOrder,
+          // If the column doesn't exist yet, Supabase will ignore unknown keys in some clients;
+          // if it errors, the caller will see the message.
+          image_url: imageUrl || null,
+          image_urls: (imageUrls && imageUrls.length > 0) ? imageUrls.slice(0, 4) : null,
         })
         .select()
         .single()
@@ -94,6 +102,8 @@ export async function createAlternative(
           is_correct: shouldBeCorrect,
           explanation: explanation || null,
           order: nextOrder,
+          image_url: imageUrl || null,
+          image_urls: (imageUrls && imageUrls.length > 0) ? imageUrls.slice(0, 4) : null,
         })
         .select()
         .single()
@@ -135,7 +145,7 @@ export async function getAlternatives(exerciseId: string): Promise<Alternative[]
 export async function updateAlternative(
   alternativeId: string,
   exerciseId: string,
-  updates: { content?: string; is_correct?: boolean; explanation?: string }
+  updates: { content?: string; is_correct?: boolean; explanation?: string; image_url?: string | null; image_urls?: string[] | null }
 ) {
   try {
     // If we're making this alternative correct, we need to handle this carefully

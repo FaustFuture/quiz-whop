@@ -11,6 +11,9 @@ import { Button } from "@/components/ui/button"
 import { getCompany } from "@/app/actions/company"
 import { AddExerciseDialog } from "@/components/add-exercise-dialog"
 import { ExerciseNavigation } from "@/components/exercise-navigation"
+import { RetakeStatsDialog } from "@/components/retake-stats-dialog"
+import { ExamGrantRetake } from "@/components/exam-grant-retake"
+import { ExamLockToggle } from "@/components/exam-lock-toggle"
 
 interface ModulePageProps {
   params: Promise<{ companyId: string; moduleId: string }>
@@ -52,7 +55,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
           <Link href={`/dashboard/${companyId}`}>
             <Button variant="ghost" className="mb-6 gap-2 text-muted-foreground hover:text-foreground hover:bg-accent">
               <ArrowLeft className="h-4 w-4" />
-              Back to Modules
+              Back to Dashboard
             </Button>
           </Link>
           
@@ -65,7 +68,17 @@ export default async function ModulePage({ params }: ModulePageProps) {
                 </p>
               )}
             </div>
-            <AddExerciseDialog moduleId={moduleId} />
+            <div className="flex items-center gap-2">
+              <ExamLockToggle 
+                moduleId={moduleId} 
+                companyId={companyId} 
+                isUnlocked={module.is_unlocked} 
+                moduleType={module.type} 
+              />
+              <ExamGrantRetake moduleId={moduleId} companyId={companyId} moduleType={module.type} />
+              <RetakeStatsDialog moduleId={moduleId} moduleTitle={module.title} moduleType={module.type} />
+              <AddExerciseDialog moduleId={moduleId} />
+            </div>
           </div>
         </div>
 
@@ -78,8 +91,8 @@ export default async function ModulePage({ params }: ModulePageProps) {
           </div>
           
           {exercises.length === 0 ? (
-            <div className="rounded-xl border border-gray-200/10 bg-[#141414] p-12 text-center">
-              <p className="text-gray-400">
+            <div className="rounded-xl border border-border bg-card p-12 text-center">
+              <p className="text-muted-foreground">
                 No exercises yet. Click "Add Exercise" to create your first exercise.
               </p>
             </div>

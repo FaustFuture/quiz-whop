@@ -87,6 +87,24 @@ export function SortableModuleCard({ module, companyId, isActive = false, onModu
       <CardHeader className="pb-3 flex-1">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <span className={`px-2 py-1 text-xs rounded-full ${
+                module.type === 'exam'
+                  ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                  : 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
+              }`}>
+                {module.type === 'exam' ? 'Exam' : 'Module'}
+              </span>
+              {module.type === 'exam' && (
+                <span className={`px-2 py-1 text-xs rounded-full ${
+                  module.is_unlocked
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                    : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
+                }`}>
+                  {module.is_unlocked ? 'Unlocked' : 'Locked'}
+                </span>
+              )}
+            </div>
             <CardTitle className="text-lg text-foreground line-clamp-2">{module.title}</CardTitle>
             {module.description && (
               <CardDescription className="mt-2 line-clamp-2 text-muted-foreground text-sm">

@@ -42,29 +42,7 @@ export async function saveExamResult(
   answers: AnswerSubmission[]
 ) {
   try {
-    // First, delete any existing results for this user and module
-    // This ensures only the latest attempt is kept (overwrite behavior)
-    const { data: existingResults } = await supabase
-      .from("results")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("module_id", moduleId)
-
-    if (existingResults && existingResults.length > 0) {
-      // Delete exam_answers for existing results (will cascade delete via FK)
-      const resultIds = existingResults.map(r => r.id)
-      await supabase
-        .from("exam_answers")
-        .delete()
-        .in("result_id", resultIds)
-      
-      // Delete old results
-      await supabase
-        .from("results")
-        .delete()
-        .eq("user_id", userId)
-        .eq("module_id", moduleId)
-    }
+    // Allow multiple attempts - no longer delete existing results
 
     // Create the new result record
     const { data: result, error: resultError } = await supabase
@@ -311,6 +289,119 @@ export async function getResultWithAnswers(resultId: string) {
   } catch (error) {
     console.error("Error fetching result with answers:", error)
     return { success: false, error: "Failed to fetch result details" }
+  }
+}
+
+// New functions for retake functionality
+export async function getUserRetakeStats(userId: string, moduleId: string) {
+  try {
+    const { data, error } = await supabase
+      .from("results")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("module_id", moduleId)
+      .order("submitted_at", { ascending: false })
+
+    if (error) {
+      console.error("Error fetching retake stats:", error)
+      return { success: false, error: error.message }
+    }
+
+    const attempts = data || []
+    const totalAttempts = attempts.length
+    const bestScore = attempts.length > 0 ? Math.max(...attempts.map(a => a.score)) : 0
+    const latestScore = attempts.length > 0 ? attempts[0].score : 0
+    const averageScore = attempts.length > 0 ? attempts.reduce((sum, a) => sum + a.score, 0) / attempts.length : 0
+
+    return {
+      success: true,
+      data: {
+        totalAttempts,
+        bestScore,
+        latestScore,
+        averageScore: Math.round(averageScore * 100) / 100,
+        attempts: attempts.map(a => ({
+          id: a.id,
+          score: a.score,
+          submitted_at: a.submitted_at,
+          correct_answers: a.correct_answers,
+          total_questions: a.total_questions
+        }))
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching retake stats:", error)
+    return { success: false, error: "Failed to fetch retake statistics" }
+  }
+}
+
+export async function getModuleRetakeStats(moduleId: string) {
+  try {
+    const { data, error } = await supabase
+      .from("results")
+      .select(`
+        *,
+        modules!inner (
+          title,
+          company_id
+        )
+      `)
+      .eq("module_id", moduleId)
+      .order("submitted_at", { ascending: false })
+
+    if (error) {
+      console.error("Error fetching module retake stats:", error)
+      return { success: false, error: error.message }
+    }
+
+    const results = data || []
+    
+    // Group by user to get per-user statistics
+    const userStats = results.reduce((acc: any, result) => {
+      const userId = result.user_id
+      if (!acc[userId]) {
+        acc[userId] = {
+          user_id: userId,
+          user_name: result.user_name,
+          attempts: [],
+          totalAttempts: 0,
+          bestScore: 0,
+          latestScore: 0,
+          averageScore: 0
+        }
+      }
+      
+      acc[userId].attempts.push({
+        id: result.id,
+        score: result.score,
+        submitted_at: result.submitted_at,
+        correct_answers: result.correct_answers,
+        total_questions: result.total_questions
+      })
+      
+      return acc
+    }, {})
+
+    // Calculate statistics for each user
+    Object.values(userStats).forEach((user: any) => {
+      user.totalAttempts = user.attempts.length
+      user.bestScore = Math.max(...user.attempts.map((a: any) => a.score))
+      user.latestScore = user.attempts[0].score
+      user.averageScore = Math.round((user.attempts.reduce((sum: number, a: any) => sum + a.score, 0) / user.attempts.length) * 100) / 100
+    })
+
+    return {
+      success: true,
+      data: {
+        moduleTitle: results[0]?.modules?.title || "Unknown Module",
+        totalSubmissions: results.length,
+        uniqueUsers: Object.keys(userStats).length,
+        userStats: Object.values(userStats)
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching module retake stats:", error)
+    return { success: false, error: "Failed to fetch module retake statistics" }
   }
 }
 

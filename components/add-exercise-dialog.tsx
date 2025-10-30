@@ -56,7 +56,8 @@ export function AddExerciseDialog({ moduleId }: AddExerciseDialogProps) {
     <Button 
       onClick={handleCreateExercise}
       disabled={isLoading || !canCreate}
-      className="gap-2 bg-emerald-600 hover:bg-emerald-700"
+      size="sm"
+      className="gap-2 bg-emerald-600 hover:bg-emerald-700 min-w-[140px]"
       title={!canCreate ? "Complete the current exercise (title and at least one option) before adding another." : undefined}
     >
       <Plus className="h-4 w-4" />

@@ -14,7 +14,7 @@ import {
 import { Progress } from "@/components/ui/progress"
 import { type Exercise } from "@/app/actions/exercises"
 import { type Alternative } from "@/app/actions/alternatives"
-import { saveExamResult, type AnswerSubmission } from "@/app/actions/results"
+import { saveExamResult, getUserRetakeStats, type AnswerSubmission } from "@/app/actions/results"
 import Image from "next/image"
 
 interface ExamQuestion extends Exercise {
@@ -28,6 +28,8 @@ interface ExamInterfaceProps {
   moduleId: string
   userId: string
   userName: string
+  moduleType: 'module' | 'exam'
+  isUnlocked: boolean
 }
 
 interface AnswerRecord {
@@ -37,7 +39,7 @@ interface AnswerRecord {
   timeSpentSeconds: number
 }
 
-export function ExamInterface({ questions, moduleTitle, companyId, moduleId, userId, userName }: ExamInterfaceProps) {
+export function ExamInterface({ questions, moduleTitle, companyId, moduleId, userId, userName, moduleType, isUnlocked }: ExamInterfaceProps) {
   const router = useRouter()
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [answers, setAnswers] = useState<AnswerRecord[]>([])
@@ -46,11 +48,32 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
   const [showResults, setShowResults] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null)
+  const [fullscreenVideo, setFullscreenVideo] = useState<string | null>(null)
+  const [retakeStats, setRetakeStats] = useState<any>(null)
+  const [isLoadingStats, setIsLoadingStats] = useState(true)
   const questionStartTime = useRef<number>(Date.now())
 
   const currentQuestion = questions[currentQuestionIndex]
   const [imageSize, setImageSize] = useState<"aspect-ratio" | "large" | "medium" | "small">(currentQuestion.image_display_size as "aspect-ratio" | "large" | "medium" | "small" || "aspect-ratio")
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100
+
+  // Load retake stats on component mount
+  useEffect(() => {
+    const loadRetakeStats = async () => {
+      try {
+        const stats = await getUserRetakeStats(userId, moduleId)
+        if (stats.success) {
+          setRetakeStats(stats.data)
+        }
+      } catch (error) {
+        console.error("Error loading retake stats:", error)
+      } finally {
+        setIsLoadingStats(false)
+      }
+    }
+    
+    loadRetakeStats()
+  }, [userId, moduleId])
 
   const getImageHeightClass = () => {
     switch (imageSize) {
@@ -64,6 +87,175 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
       default:
         return "h-auto"
     }
+  }
+
+  const renderImages = (imgs: string[]) => {
+    if (imgs.length === 0) return null
+    
+    const layout = (currentQuestion as any).image_layout || (imgs.length === 2 ? 'horizontal' : imgs.length === 3 ? 'carousel' : 'grid')
+    
+    if (imgs.length === 1) {
+      return (
+        <div className="relative w-full mb-4 rounded-lg overflow-hidden bg-muted border border-border group">
+          <div className={`relative w-full ${getImageHeightClass()} flex items-center justify-center`}>
+            <Image
+              src={imgs[0]}
+              alt="Question image"
+              width={800}
+              height={600}
+              className={`w-full ${getImageHeightClass()} object-cover rounded-lg`}
+            />
+            <div className="absolute top-2 left-2 px-2 py-1 bg-black/70 text-white text-xs font-bold rounded">
+              1
+            </div>
+            <button
+              onClick={() => setFullscreenImage(imgs[0])}
+              className="absolute top-2 right-2 p-2 bg-black/50 rounded-lg text-white hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity"
+            >
+              <Maximize2 className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )
+    }
+
+    // Multiple images - render based on layout
+    if (imgs.length === 2) {
+      if (layout === 'vertical') {
+        return (
+          <div className={`relative w-full mb-4 rounded-lg overflow-hidden bg-muted border border-border p-2 ${getImageHeightClass()}`}>
+            <div className="grid grid-cols-1 gap-2 h-full">
+              {imgs.map((u, i) => (
+                <div key={i} className="relative w-full h-full group">
+                  <img src={u} alt={`Question image ${i+1}`} className="w-full h-full object-cover rounded" />
+                  <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-black/70 text-white text-xs font-bold rounded">
+                    {i + 1}
+                  </div>
+                  <button
+                    onClick={() => setFullscreenImage(u)}
+                    className="absolute top-1 right-1 p-1 bg-black/50 rounded text-white hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Maximize2 className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      } else { // horizontal
+        return (
+          <div className={`relative w-full mb-4 rounded-lg overflow-hidden bg-muted border border-border p-2 ${getImageHeightClass()}`}>
+            <div className="grid grid-cols-2 gap-2 h-full">
+              {imgs.map((u, i) => (
+                <div key={i} className="relative w-full h-full group">
+                  <img src={u} alt={`Question image ${i+1}`} className="w-full h-full object-cover rounded" />
+                  <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-black/70 text-white text-xs font-bold rounded">
+                    {i + 1}
+                  </div>
+                  <button
+                    onClick={() => setFullscreenImage(u)}
+                    className="absolute top-1 right-1 p-1 bg-black/50 rounded text-white hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Maximize2 className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      }
+    }
+
+    if (imgs.length === 3) {
+      return (
+        <div className={`relative w-full mb-4 rounded-lg overflow-hidden bg-muted border border-border p-2 ${getImageHeightClass()}`}>
+          <div className="flex gap-4 h-full overflow-x-auto scrollbar-hide">
+            {imgs.map((u, i) => (
+              <div key={i} className="relative w-80 h-full group flex-shrink-0">
+                <img src={u} alt={`Question image ${i+1}`} className="w-full h-full object-cover rounded" />
+                <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-black/70 text-white text-xs font-bold rounded">
+                  {i + 1}
+                </div>
+                <button
+                  onClick={() => setFullscreenImage(u)}
+                  className="absolute top-1 right-1 p-1 bg-black/50 rounded text-white hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Maximize2 className="w-3 h-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    }
+
+    if (imgs.length === 4) {
+      if (layout === 'carousel') {
+        return (
+          <div className={`relative w-full mb-4 rounded-lg overflow-hidden bg-muted border border-border p-2 ${getImageHeightClass()}`}>
+            <div className="flex gap-4 h-full overflow-x-auto scrollbar-hide">
+              {imgs.map((u, i) => (
+                <div key={i} className="relative w-80 h-full group flex-shrink-0">
+                  <img src={u} alt={`Question image ${i+1}`} className="w-full h-full object-cover rounded" />
+                  <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-black/70 text-white text-xs font-bold rounded">
+                    {i + 1}
+                  </div>
+                  <button
+                    onClick={() => setFullscreenImage(u)}
+                    className="absolute top-1 right-1 p-1 bg-black/50 rounded text-white hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Maximize2 className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      } else { // grid (2x2)
+        return (
+          <div className={`relative w-full mb-4 rounded-lg overflow-hidden bg-muted border border-border p-2 ${getImageHeightClass()}`}>
+            <div className="grid grid-cols-2 gap-2 h-full">
+              {imgs.map((u, i) => (
+                <div key={i} className="relative w-full h-full group">
+                  <img src={u} alt={`Question image ${i+1}`} className="w-full h-full object-cover rounded" />
+                  <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-black/70 text-white text-xs font-bold rounded">
+                    {i + 1}
+                  </div>
+                  <button
+                    onClick={() => setFullscreenImage(u)}
+                    className="absolute top-1 right-1 p-1 bg-black/50 rounded text-white hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <Maximize2 className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )
+      }
+    }
+
+    // Fallback to grid for any other number of images
+    return (
+      <div className={`relative w-full mb-4 rounded-lg overflow-hidden bg-muted border border-border p-2 ${getImageHeightClass()}`}>
+        <div className="grid grid-cols-2 gap-2 h-full">
+          {imgs.map((u, i) => (
+            <div key={i} className="relative w-full h-full group">
+              <img src={u} alt={`Question image ${i+1}`} className="w-full h-full object-cover rounded" />
+              <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-black/70 text-white text-xs font-bold rounded">
+                {i + 1}
+              </div>
+              <button
+                onClick={() => setFullscreenImage(u)}
+                className="absolute top-1 right-1 p-1 bg-black/50 rounded text-white hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <Maximize2 className="w-3 h-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      </div>
+    )
   }
 
   // Check if this question has already been answered and reset timer
@@ -214,6 +406,31 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
               <p className="text-lg text-muted-foreground">
                 You got {correctAnswers} out of {totalQuestions} questions correct
               </p>
+              
+              {/* Retake Statistics */}
+              {!isLoadingStats && retakeStats && retakeStats.totalAttempts > 0 && (
+                <div className="mt-6 p-4 bg-muted rounded-lg">
+                  <h4 className="font-semibold mb-3">Your Quiz History</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-primary">{retakeStats.totalAttempts}</div>
+                      <div className="text-muted-foreground">Total Attempts</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">{retakeStats.bestScore}%</div>
+                      <div className="text-muted-foreground">Best Score</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-blue-600">{retakeStats.latestScore}%</div>
+                      <div className="text-muted-foreground">Latest Score</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-purple-600">{retakeStats.averageScore}%</div>
+                      <div className="text-muted-foreground">Average Score</div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="space-y-4">
@@ -242,21 +459,32 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
             </div>
           </CardContent>
           <CardFooter className="flex justify-center gap-4">
-            <Button onClick={() => router.push(`/dashboard/${companyId}`)}>
+            <Button 
+              onClick={() => router.push(`/dashboard/${companyId}`)}
+              className="min-w-[140px]"
+            >
               Back to Dashboard
             </Button>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setCurrentQuestionIndex(0)
-                setAnswers([])
-                setSelectedAlternativeId(null)
-                setHasAnswered(false)
-                setShowResults(false)
-              }}
-            >
-              Retake Exam
-            </Button>
+            {(moduleType === 'module' || (moduleType === 'exam' && isUnlocked)) && (
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setCurrentQuestionIndex(0)
+                  setAnswers([])
+                  setSelectedAlternativeId(null)
+                  setHasAnswered(false)
+                  setShowResults(false)
+                }}
+                className="min-w-[140px]"
+              >
+                {moduleType === 'module' ? 'Retake Quiz' : 'Retake Exam'}
+              </Button>
+            )}
+            {moduleType === 'exam' && !isUnlocked && (
+              <div className="text-center text-sm text-muted-foreground">
+                This exam cannot be retaken unless unlocked by an administrator.
+              </div>
+            )}
           </CardFooter>
         </Card>
       </div>
@@ -272,7 +500,7 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
               This module doesn't have any questions yet.
             </p>
             <Button 
-              className="mt-4"
+              className="mt-4 min-w-[140px]"
               onClick={() => router.push(`/dashboard/${companyId}`)}
             >
               Back to Dashboard
@@ -301,26 +529,45 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
       {/* Question Card */}
       <Card className="mb-6 border-border">
         <CardHeader>
-           {currentQuestion.image_url && (
-             <div className="relative w-full mb-4 rounded-lg overflow-hidden bg-muted border border-border">
-               <div className={`relative w-full ${getImageHeightClass()} flex items-center justify-center`}>
-                 <Image
-                   src={currentQuestion.image_url}
-                   alt="Question image"
-                   width={800}
-                   height={600}
-                   className={`w-full ${getImageHeightClass()} object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity`}
-                   onClick={() => setFullscreenImage(currentQuestion.image_url!)}
+           {/* Video if available */}
+           {currentQuestion.video_url && (
+             <div className="relative w-full mb-4 rounded-lg overflow-hidden border border-border bg-black group">
+               {/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//.test(currentQuestion.video_url) ? (
+                 <iframe
+                   src={`https://www.youtube.com/embed/${(() => {
+                     const m = currentQuestion.video_url!.match(/(?:v=|youtu\.be\/)([^&/?#]+)/)
+                     return m ? m[1] : ""
+                   })()}`}
+                   className="w-full aspect-video"
+                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                   allowFullScreen
                  />
-                 <button
-                   onClick={() => setFullscreenImage(currentQuestion.image_url!)}
-                   className="absolute top-2 right-2 p-2 bg-black/50 rounded-lg text-white hover:bg-black/70"
-                 >
-                   <Maximize2 className="h-4 w-4" />
-                 </button>
-               </div>
+               ) : (/^https?:\/\/(www\.)?vimeo\.com\//.test(currentQuestion.video_url) ? (
+                 <iframe
+                   src={currentQuestion.video_url.replace("vimeo.com", "player.vimeo.com/video")}
+                   className="w-full aspect-video"
+                   allow="autoplay; fullscreen; picture-in-picture"
+                   allowFullScreen
+                 />
+               ) : (
+                 <video controls className="w-full aspect-video">
+                   <source src={currentQuestion.video_url} />
+                 </video>
+               ))}
+               <button
+                 onClick={() => setFullscreenVideo(currentQuestion.video_url!)}
+                 className="absolute top-2 right-2 p-2 bg-black/50 rounded-lg text-white hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity"
+               >
+                 <Maximize2 className="w-4 h-4" />
+               </button>
              </div>
            )}
+           {(() => {
+             const imgs: string[] = (currentQuestion as any).image_urls && (currentQuestion as any).image_urls.length > 0
+               ? (currentQuestion as any).image_urls.slice(0,4)
+               : (currentQuestion.image_url ? [currentQuestion.image_url] : [])
+             return renderImages(imgs)
+           })()}
 
 
           <CardTitle className="text-2xl">
@@ -344,6 +591,40 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
+                  {(() => {
+                    const imgs: string[] = (alternative as any).image_urls && (alternative as any).image_urls.length > 0
+                      ? (alternative as any).image_urls.slice(0,4)
+                      : ((alternative as any).image_url ? [(alternative as any).image_url] : [])
+                    if (imgs.length === 0) return null
+                    if (imgs.length === 1) {
+                      return (
+                        <div className="mb-2 relative w-full pt-[56%] bg-muted rounded border overflow-hidden group">
+                          <img src={imgs[0]} alt="Option image" className="absolute inset-0 h-full w-full object-cover" />
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setFullscreenImage(imgs[0]); }}
+                            className="absolute top-1 right-1 p-1 bg-black/50 rounded text-white hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <Maximize2 className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )
+                    }
+                    return (
+                      <div className="mb-2 grid grid-cols-2 gap-2">
+                        {imgs.map((u, i) => (
+                          <div key={i} className="relative w-full pt-[100%] bg-muted rounded border overflow-hidden group">
+                            <img src={u} alt={`Option image ${i+1}`} className="absolute inset-0 h-full w-full object-cover" />
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setFullscreenImage(u); }}
+                              className="absolute top-1 right-1 p-1 bg-black/50 rounded text-white hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <Maximize2 className="w-2 h-2" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  })()}
                   <p className="font-medium">{alternative.content}</p>
                   {hasAnswered && alternative.explanation && (
                     alternative.id === selectedAlternativeId || alternative.is_correct
@@ -412,8 +693,8 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
 
       {/* Fullscreen Image Modal */}
       {fullscreenImage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm">
-          <div className="relative max-w-[90vw] max-h-[90vh] p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
+          <div className="relative w-full h-full flex items-center justify-center">
             <button
               onClick={() => setFullscreenImage(null)}
               className="absolute top-4 right-4 z-10 p-2 bg-black/50 rounded-lg text-white hover:bg-black/70"
@@ -427,6 +708,44 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
               height={800}
               className="max-w-full max-h-full object-contain rounded-lg"
             />
+          </div>
+        </div>
+      )}
+
+      {/* Fullscreen Video Modal */}
+      {fullscreenVideo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4">
+          <div className="relative w-full h-full flex items-center justify-center">
+            <button
+              onClick={() => setFullscreenVideo(null)}
+              className="absolute top-4 right-4 z-10 p-2 bg-black/50 rounded-lg text-white hover:bg-black/70"
+            >
+              <X className="h-6 w-6" />
+            </button>
+            <div className="w-full h-full flex items-center justify-center">
+              {/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//.test(fullscreenVideo) ? (
+                <iframe
+                  src={`https://www.youtube.com/embed/${(() => {
+                    const m = fullscreenVideo.match(/(?:v=|youtu\.be\/)([^&/?#]+)/)
+                    return m ? m[1] : ""
+                  })()}`}
+                  className="aspect-video max-w-full max-h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (/^https?:\/\/(www\.)?vimeo\.com\//.test(fullscreenVideo) ? (
+                <iframe
+                  src={fullscreenVideo.replace("vimeo.com", "player.vimeo.com/video")}
+                  className="aspect-video max-w-full max-h-full"
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : (
+                <video controls className="max-w-full max-h-full object-contain">
+                  <source src={fullscreenVideo} />
+                </video>
+              ))}
+            </div>
           </div>
         </div>
       )}

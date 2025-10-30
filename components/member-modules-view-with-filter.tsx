@@ -1,5 +1,6 @@
-import { getModules, type Module } from "@/app/actions/modules"
-import { getResultsByUserAndModule, getResultsByUser } from "@/app/actions/results"
+"use client"
+
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -8,44 +9,71 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Play, RotateCcw, Trophy } from "lucide-react"
 import Link from "next/link"
+import { type Module } from "@/app/actions/modules"
 
-interface MemberModulesViewProps {
+interface MemberModulesViewWithFilterProps {
   companyId: string
   userId: string
+  modules: Module[]
+  userResults: { [moduleId: string]: any }
 }
 
-export async function MemberModulesView({ companyId, userId }: MemberModulesViewProps) {
-  const modules = await getModules(companyId)
-  
-  // Debug: Get all results for this user
-  const allUserResults = await getResultsByUser(userId)
-  console.log('All user results:', allUserResults)
+export function MemberModulesViewWithFilter({ 
+  companyId, 
+  userId, 
+  modules, 
+  userResults 
+}: MemberModulesViewWithFilterProps) {
+  const [filter, setFilter] = useState<'all' | 'module' | 'exam'>('all')
+
+  const filteredModules = modules.filter((m) => {
+    if (filter === 'all') return true
+    return m.type === filter
+  })
+
+  const getTitle = () => {
+    if (filter === 'module') return 'Available Modules'
+    if (filter === 'exam') return 'Available Exams'
+    return 'All Modules/Exams'
+  }
 
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight text-foreground">Available Modules</h2>
-        <p className="text-muted-foreground">
-          Select a module to take the exam
-        </p>
+        <h2 className="text-3xl font-bold tracking-tight text-foreground">{getTitle()}</h2>
+        <div className="w-40">
+          <Select value={filter} onValueChange={(v) => setFilter(v as any)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filter" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="module">Module</SelectItem>
+              <SelectItem value="exam">Exam</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
       
-      {modules.length === 0 ? (
+      {filteredModules.length === 0 ? (
         <div className="rounded-xl border border-border bg-card p-12 text-center">
           <p className="text-muted-foreground">
-            No modules available yet. Please check back later.
+            No {filter === 'all' ? 'modules' : filter === 'module' ? 'modules' : 'exams'} available yet. Please check back later.
           </p>
         </div>
       ) : (
         <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-          {modules.map((module) => (
+          {filteredModules.map((module) => (
             <ModuleExamCard 
               key={module.id} 
               module={module} 
               companyId={companyId} 
               userId={userId}
+              hasResult={!!userResults[module.id]}
+              result={userResults[module.id]}
             />
           ))}
         </div>
@@ -58,24 +86,34 @@ interface ModuleExamCardProps {
   module: Module
   companyId: string
   userId: string
+  hasResult: boolean
+  result: any
 }
 
-async function ModuleExamCard({ module, companyId, userId }: ModuleExamCardProps) {
-  // Fetch the most recent result for this user and module
-  const result = await getResultsByUserAndModule(userId, module.id)
-  const hasResult = result !== null
-  
-  // Debug logging
-  console.log(`Module: ${module.title}, User: ${userId}, Has Result: ${hasResult}`)
-  if (result) {
-    console.log('Result data:', result)
-  }
-  
+function ModuleExamCard({ module, companyId, userId, hasResult, result }: ModuleExamCardProps) {
   return (
     <Card className="relative group hover:shadow-xl border-border bg-card hover:bg-muted hover:border-emerald-500/50 flex flex-col min-h-64">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                module.type === 'exam'
+                  ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                  : 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
+              }`}>
+                {module.type === 'exam' ? 'Exam' : 'Module'}
+              </span>
+              {module.type === 'exam' && (
+                <span className={`px-2 py-1 text-xs rounded-full font-medium ${
+                  module.is_unlocked
+                    ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
+                    : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400'
+                }`}>
+                  {module.is_unlocked ? 'Unlocked' : 'Locked'}
+                </span>
+              )}
+            </div>
             <CardTitle className="text-2xl text-foreground">{module.title}</CardTitle>
             {module.description && (
               <CardDescription className="mt-3 line-clamp-3 text-muted-foreground text-base">
@@ -115,7 +153,7 @@ async function ModuleExamCard({ module, companyId, userId }: ModuleExamCardProps
             <Link href={`/dashboard/${companyId}/modules/${module.id}/exam`} className="mt-auto">
               <Button className="w-full gap-2 bg-muted border-border text-muted-foreground hover:text-foreground hover:bg-accent hover:border-emerald-500" variant="outline">
                 <RotateCcw className="h-4 w-4" />
-                Retake Exam
+                Retake {module.type === 'exam' ? 'Exam' : 'Quiz'}
               </Button>
             </Link>
           </div>
@@ -129,7 +167,7 @@ async function ModuleExamCard({ module, companyId, userId }: ModuleExamCardProps
             <Link href={`/dashboard/${companyId}/modules/${module.id}/exam`} className="mt-auto">
               <Button className="w-full gap-2 bg-emerald-600 hover:bg-emerald-700">
                 <Play className="h-4 w-4" />
-                Take Quiz
+                Take {module.type === 'exam' ? 'Exam' : 'Quiz'}
               </Button>
             </Link>
           </div>
