@@ -11,7 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { grantExamRetakeByUsernames, searchCachedUsers } from "@/app/actions/users"
+import { grantExamRetakeByUsernames, searchCachedUsers, listExamRetakes } from "@/app/actions/users"
 import { useRouter } from "next/navigation"
 import { Users } from "lucide-react"
 
@@ -27,6 +27,8 @@ export function GrantRetakeDialog({ moduleId, companyId }: GrantRetakeDialogProp
   const [suggestions, setSuggestions] = useState<{ username: string; whop_user_id: string; name?: string | null }[]>([])
   const [showDropdown, setShowDropdown] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [grantedOpen, setGrantedOpen] = useState(false)
+  const [granted, setGranted] = useState<{ username: string | null; name: string | null; user_id: string; granted_at: string; used_at: string | null }[]>([])
   const router = useRouter()
 
   const parseUsernames = (txt: string): string[] => {
@@ -70,6 +72,16 @@ export function GrantRetakeDialog({ moduleId, companyId }: GrantRetakeDialogProp
       router.refresh()
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  const loadGranted = async () => {
+    setGrantedOpen((v) => !v)
+    if (!grantedOpen) {
+      const res = await listExamRetakes(moduleId)
+      if (res.success) {
+        setGranted(res.data as any)
+      }
     }
   }
 
@@ -126,6 +138,30 @@ export function GrantRetakeDialog({ moduleId, companyId }: GrantRetakeDialogProp
               </div>
             )}
           </div>
+          <div className="flex justify-between items-center">
+            <Button variant="ghost" size="sm" onClick={loadGranted} className="text-foreground">
+              {grantedOpen ? "Hide Granted" : "View Granted"}
+            </Button>
+          </div>
+          {grantedOpen && (
+            <div className="max-h-64 overflow-auto border border-border rounded-md p-2 space-y-1 bg-card">
+              {granted.length === 0 ? (
+                <p className="text-sm text-muted-foreground px-1">No users have been granted a retake yet.</p>
+              ) : (
+                granted.map((g) => (
+                  <div key={`${g.user_id}-${g.granted_at}`} className="flex items-center justify-between px-2 py-1 rounded hover:bg-accent">
+                    <div className="text-sm text-foreground">
+                      {g.username || g.user_id}
+                      {g.name ? <span className="text-muted-foreground"> – {g.name}</span> : null}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {new Date(g.granted_at).toLocaleDateString()} {g.used_at ? "(used)" : "(not used)"}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setOpen(false)} disabled={isLoading} className="min-w-[100px] text-foreground">Cancel</Button>
             <Button onClick={handleGrant} disabled={isLoading} className="min-w-[100px]">{isLoading ? "Granting..." : "Grant"}</Button>

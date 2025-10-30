@@ -111,7 +111,7 @@ async function ModuleExamCard({ module, companyId, userId }: ModuleExamCardProps
               </p>
             </div>
             
-            {/* Actions: View and optional Retake (quizzes only) */}
+            {/* Actions: View and Retake (quizzes enabled, exams disabled) */}
             <div className="mt-auto grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Link href={`/dashboard/${companyId}/modules/${module.id}/exam?view=results`}>
                 <Button className="w-full gap-2 bg-muted border-border text-muted-foreground hover:text-foreground hover:bg-accent hover:border-emerald-500" variant="outline">
@@ -119,13 +119,18 @@ async function ModuleExamCard({ module, companyId, userId }: ModuleExamCardProps
                   View {module.type === 'exam' ? 'Exam' : 'Quiz'}
                 </Button>
               </Link>
-              {module.type === 'module' && (
+              {module.type === 'module' ? (
                 <Link href={`/dashboard/${companyId}/modules/${module.id}/exam`}>
                   <Button className="w-full gap-2 bg-emerald-600 hover:bg-emerald-700">
                     <RotateCcw className="h-4 w-4" />
                     Retake Quiz
                   </Button>
                 </Link>
+              ) : (
+                <Button className="w-full gap-2" variant="secondary" disabled>
+                  <RotateCcw className="h-4 w-4" />
+                  Retake Exam
+                </Button>
               )}
             </div>
           </div>
