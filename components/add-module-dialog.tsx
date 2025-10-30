@@ -90,7 +90,7 @@ export function AddModuleDialog({ companyId, onModuleCreated }: AddModuleDialogP
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="module" id="module" />
                   <Label htmlFor="module" className="text-foreground">
-                    Build Module - Retakable quiz for learning
+                    Build Quiz - Retakable quiz for learning
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -119,7 +119,7 @@ export function AddModuleDialog({ companyId, onModuleCreated }: AddModuleDialogP
               <Label htmlFor="description" className="text-foreground">Description</Label>
               <Textarea
                 id="description"
-                placeholder="Describe what this module covers..."
+                placeholder="Describe what this quiz covers..."
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
@@ -138,7 +138,7 @@ export function AddModuleDialog({ companyId, onModuleCreated }: AddModuleDialogP
               Cancel
             </Button>
             <Button type="submit" disabled={isLoading || !title.trim()} className="bg-emerald-600 hover:bg-emerald-700">
-              {isLoading ? "Creating..." : `Create ${type === 'module' ? 'Module' : 'Exam'}`}
+              {isLoading ? "Creating..." : `Create ${type === 'module' ? 'Quiz' : 'Exam'}`}
             </Button>
           </DialogFooter>
         </form>

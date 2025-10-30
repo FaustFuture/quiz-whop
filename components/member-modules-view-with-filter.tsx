@@ -35,9 +35,9 @@ export function MemberModulesViewWithFilter({
   })
 
   const getTitle = () => {
-    if (filter === 'module') return 'Available Modules'
+    if (filter === 'module') return 'Available Quizzes'
     if (filter === 'exam') return 'Available Exams'
-    return 'All Modules/Exams'
+    return 'All Quizzes and Exams'
   }
 
   return (
@@ -51,7 +51,7 @@ export function MemberModulesViewWithFilter({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All</SelectItem>
-              <SelectItem value="module">Module</SelectItem>
+              <SelectItem value="module">Quiz</SelectItem>
               <SelectItem value="exam">Exam</SelectItem>
             </SelectContent>
           </Select>
@@ -61,7 +61,7 @@ export function MemberModulesViewWithFilter({
       {filteredModules.length === 0 ? (
         <div className="rounded-xl border border-border bg-card p-12 text-center">
           <p className="text-muted-foreground">
-            No {filter === 'all' ? 'modules' : filter === 'module' ? 'modules' : 'exams'} available yet. Please check back later.
+          No {filter === 'all' ? 'quizzes' : filter === 'module' ? 'quizzes' : 'exams'} available yet. Please check back later.
           </p>
         </div>
       ) : (
@@ -102,7 +102,7 @@ function ModuleExamCard({ module, companyId, userId, hasResult, result }: Module
                   ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
                   : 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
               }`}>
-                {module.type === 'exam' ? 'Exam' : 'Module'}
+                {module.type === 'exam' ? 'Exam' : 'Quiz'}
               </span>
               {module.type === 'exam' && (
                 <span className={`px-2 py-1 text-xs rounded-full font-medium ${

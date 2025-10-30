@@ -15,6 +15,7 @@ import { Progress } from "@/components/ui/progress"
 import { type Exercise } from "@/app/actions/exercises"
 import { type Alternative } from "@/app/actions/alternatives"
 import { saveExamResult, getUserRetakeStats, type AnswerSubmission } from "@/app/actions/results"
+import { hasExamRetakeAccess } from "@/app/actions/users"
 import Image from "next/image"
 
 interface ExamQuestion extends Exercise {
@@ -46,18 +47,20 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
   const [selectedAlternativeId, setSelectedAlternativeId] = useState<string | null>(null)
   const [hasAnswered, setHasAnswered] = useState(false)
   const [showResults, setShowResults] = useState(false)
+  const [viewResults, setViewResults] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null)
   const [fullscreenVideo, setFullscreenVideo] = useState<string | null>(null)
   const [retakeStats, setRetakeStats] = useState<any>(null)
   const [isLoadingStats, setIsLoadingStats] = useState(true)
+  const [hasRetakeAccess, setHasRetakeAccess] = useState<boolean | null>(null)
   const questionStartTime = useRef<number>(Date.now())
 
   const currentQuestion = questions[currentQuestionIndex]
   const [imageSize, setImageSize] = useState<"aspect-ratio" | "large" | "medium" | "small">(currentQuestion.image_display_size as "aspect-ratio" | "large" | "medium" | "small" || "aspect-ratio")
   const progress = ((currentQuestionIndex + 1) / questions.length) * 100
 
-  // Load retake stats on component mount
+  // Load retake stats and access on component mount
   useEffect(() => {
     const loadRetakeStats = async () => {
       try {
@@ -72,8 +75,28 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
       }
     }
     
+    const loadRetakeAccess = async () => {
+      if (moduleType === 'exam') {
+        try {
+          const access = await hasExamRetakeAccess(moduleId, userId)
+          if (access.success) {
+            setHasRetakeAccess(access.data ?? false)
+          } else {
+            setHasRetakeAccess(false)
+          }
+        } catch (error) {
+          console.error("Error loading retake access:", error)
+          setHasRetakeAccess(false)
+        }
+      } else {
+        // For modules, always allow retake
+        setHasRetakeAccess(true)
+      }
+    }
+    
     loadRetakeStats()
-  }, [userId, moduleId])
+    loadRetakeAccess()
+  }, [userId, moduleId, moduleType])
 
   const getImageHeightClass = () => {
     switch (imageSize) {
@@ -387,7 +410,7 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
     return null
   }
 
-  if (showResults) {
+  if (showResults || viewResults) {
     const correctAnswers = answers.filter(a => a.isCorrect).length
     const totalQuestions = questions.length
     const scorePercentage = (correctAnswers / totalQuestions) * 100
@@ -396,7 +419,7 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
       <div className="max-w-2xl mx-auto">
         <Card className="border-gray-200/10">
           <CardHeader>
-            <CardTitle className="text-3xl text-center">Exam Results</CardTitle>
+            <CardTitle className="text-3xl text-center">{moduleType === 'module' ? 'Quiz Results' : 'Exam Results'}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="text-center">
@@ -465,7 +488,16 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
             >
               Back to Dashboard
             </Button>
-            {(moduleType === 'module' || (moduleType === 'exam' && isUnlocked)) && (
+            {viewResults && (
+              <Button 
+                variant="outline" 
+                onClick={() => setViewResults(false)}
+                className="min-w-[140px]"
+              >
+                Back to {moduleType === 'module' ? 'Quiz' : 'Exam'}
+              </Button>
+            )}
+            {(moduleType === 'module' || (moduleType === 'exam' && hasRetakeAccess === true)) && (
               <Button 
                 variant="outline" 
                 onClick={() => {
@@ -474,15 +506,21 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
                   setSelectedAlternativeId(null)
                   setHasAnswered(false)
                   setShowResults(false)
+                  setViewResults(false)
                 }}
                 className="min-w-[140px]"
               >
                 {moduleType === 'module' ? 'Retake Quiz' : 'Retake Exam'}
               </Button>
             )}
-            {moduleType === 'exam' && !isUnlocked && (
+            {moduleType === 'exam' && hasRetakeAccess === false && (
               <div className="text-center text-sm text-muted-foreground">
-                This exam cannot be retaken unless unlocked by an administrator.
+                This exam cannot be retaken unless granted access by an administrator.
+              </div>
+            )}
+            {moduleType === 'exam' && hasRetakeAccess === null && (
+              <div className="text-center text-sm text-muted-foreground">
+                Checking retake access...
               </div>
             )}
           </CardFooter>
@@ -519,9 +557,21 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
           <span className="text-sm font-medium">
             Question {currentQuestionIndex + 1} of {questions.length}
           </span>
-          <span className="text-sm text-muted-foreground">
-            {Math.round(progress)}% Complete
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              {Math.round(progress)}% Complete
+            </span>
+            {answers.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setViewResults(true)}
+                className="min-w-[120px]"
+              >
+                View Results
+              </Button>
+            )}
+          </div>
         </div>
         <Progress value={progress} className="h-2" />
       </div>

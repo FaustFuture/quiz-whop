@@ -93,7 +93,7 @@ export function SortableModuleCard({ module, companyId, isActive = false, onModu
                   ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
                   : 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
               }`}>
-                {module.type === 'exam' ? 'Exam' : 'Module'}
+                {module.type === 'exam' ? 'Exam' : 'Quiz'}
               </span>
               {module.type === 'exam' && (
                 <span className={`px-2 py-1 text-xs rounded-full ${

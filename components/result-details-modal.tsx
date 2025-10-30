@@ -49,7 +49,7 @@ export function ResultDetailsModal({ resultId, open, onClose, moduleType }: Resu
         <div className="flex items-center justify-between p-6 border-b border-border">
           <div className="flex items-center gap-2">
             <Trophy className="h-6 w-6 text-emerald-500" />
-            <h2 className="text-2xl font-semibold text-foreground">{moduleType === 'exam' ? 'Exam Results' : 'Module Results'}</h2>
+            <h2 className="text-2xl font-semibold text-foreground">{moduleType === 'exam' ? 'Exam Results' : 'Quiz Results'}</h2>
           </div>
           <Button
             variant="ghost"

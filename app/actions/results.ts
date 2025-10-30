@@ -1,6 +1,7 @@
 "use server"
 
 import { supabase } from "@/lib/supabase"
+import { upsertUsersFromWhop } from "@/app/actions/users"
 import { revalidatePath } from "next/cache"
 
 export type Result = {
@@ -42,6 +43,11 @@ export async function saveExamResult(
   answers: AnswerSubmission[]
 ) {
   try {
+    // Best-effort: cache the submitting user in `users` table
+    try {
+      await upsertUsersFromWhop([userId])
+    } catch {}
+
     // Allow multiple attempts - no longer delete existing results
 
     // Create the new result record
