@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Check, X, ChevronRight, Maximize2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -55,6 +55,7 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
   const [isLoadingStats, setIsLoadingStats] = useState(true)
   const [hasRetakeAccess, setHasRetakeAccess] = useState<boolean | null>(null)
   const questionStartTime = useRef<number>(Date.now())
+  const searchParams = useSearchParams()
 
   const currentQuestion = questions[currentQuestionIndex]
   const [imageSize, setImageSize] = useState<"aspect-ratio" | "large" | "medium" | "small">(currentQuestion.image_display_size as "aspect-ratio" | "large" | "medium" | "small" || "aspect-ratio")
@@ -62,11 +63,19 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
 
   // Load retake stats and access on component mount
   useEffect(() => {
+    // If opened with view=results, show results immediately
+    const viewParam = searchParams?.get("view")
+    if (viewParam === "results" || viewParam === "1") {
+      setViewResults(true)
+    }
+
+    let totalAttempts = 0
     const loadRetakeStats = async () => {
       try {
         const stats = await getUserRetakeStats(userId, moduleId)
         if (stats.success) {
           setRetakeStats(stats.data)
+          totalAttempts = stats.data?.totalAttempts || 0
         }
       } catch (error) {
         console.error("Error loading retake stats:", error)
@@ -80,9 +89,15 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
         try {
           const access = await hasExamRetakeAccess(moduleId, userId)
           if (access.success) {
-            setHasRetakeAccess(access.data ?? false)
+            const allowed = access.data ?? false
+            setHasRetakeAccess(allowed)
+            // Only force results if the user has already attempted at least once
+            if (!allowed && totalAttempts > 0) {
+              setViewResults(true)
+            }
           } else {
             setHasRetakeAccess(false)
+            if (totalAttempts > 0) setViewResults(true)
           }
         } catch (error) {
           console.error("Error loading retake access:", error)
@@ -96,7 +111,7 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
     
     loadRetakeStats()
     loadRetakeAccess()
-  }, [userId, moduleId, moduleType])
+  }, [userId, moduleId, moduleType, searchParams])
 
   const getImageHeightClass = () => {
     switch (imageSize) {
@@ -301,6 +316,8 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
   }, [currentQuestion.image_display_size])
 
   const handleAlternativeSelect = (alternativeId: string) => {
+    // Block answering if exam retake not granted
+    if (moduleType === 'exam' && hasRetakeAccess === false) return
     // Can only select if not yet answered
     if (hasAnswered) return
 
