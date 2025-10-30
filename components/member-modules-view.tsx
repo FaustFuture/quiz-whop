@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card"
 import { Play, RotateCcw, Trophy } from "lucide-react"
 import Link from "next/link"
+import { getUserRetakeGrants } from "@/app/actions/users"
 
 interface MemberModulesViewProps {
   companyId: string
@@ -18,6 +19,8 @@ interface MemberModulesViewProps {
 
 export async function MemberModulesView({ companyId, userId }: MemberModulesViewProps) {
   const modules = await getModules(companyId)
+  const grants = await getUserRetakeGrants(userId)
+  const retakeAllowed = new Set<string>((grants.success ? (grants.data as string[]) : []))
   
   // Debug: Get all results for this user
   const allUserResults = await getResultsByUser(userId)
@@ -127,7 +130,7 @@ async function ModuleExamCard({ module, companyId, userId }: ModuleExamCardProps
                   </Button>
                 </Link>
               ) : (
-                <Button className="w-full gap-2" variant="secondary" disabled>
+                <Button className="w-full gap-2" variant="secondary" disabled={!retakeAllowed.has(module.id)}>
                   <RotateCcw className="h-4 w-4" />
                   Retake Exam
                 </Button>

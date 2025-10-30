@@ -605,6 +605,45 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
       <div className="max-w-2xl mx-auto">
         <Card className="mb-6 border-border">
           <CardHeader>
+            {/* Video if available */}
+            {currentQuestion.video_url && (
+              <div className="relative w-full mb-4 rounded-lg overflow-hidden border border-border bg-black group">
+                {/^https?:\/\/(www\.)?(youtube\.com|youtu\.be)\//.test(currentQuestion.video_url) ? (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${(() => {
+                      const m = currentQuestion.video_url!.match(/(?:v=|youtu\.be\/)([^&\/?#]+)/)
+                      return m ? m[1] : ""
+                    })()}`}
+                    className="w-full aspect-video"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : (/^https?:\/\/(www\.)?vimeo\.com\//.test(currentQuestion.video_url) ? (
+                  <iframe
+                    src={currentQuestion.video_url.replace("vimeo.com", "player.vimeo.com/video")}
+                    className="w-full aspect-video"
+                    allow="autoplay; fullscreen; picture-in-picture"
+                    allowFullScreen
+                  />
+                ) : (
+                  <video controls className="w-full aspect-video">
+                    <source src={currentQuestion.video_url} />
+                  </video>
+                ))}
+                <button
+                  onClick={() => setFullscreenVideo(currentQuestion.video_url!)}
+                  className="absolute top-2 right-2 p-2 bg-black/50 rounded-lg text-white hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  <Maximize2 className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+            {(() => {
+              const imgs: string[] = (currentQuestion as any).image_urls && (currentQuestion as any).image_urls.length > 0
+                ? (currentQuestion as any).image_urls.slice(0,4)
+                : (currentQuestion.image_url ? [currentQuestion.image_url] : [])
+              return renderImages(imgs)
+            })()}
             <CardTitle className="text-2xl">
               {currentQuestion.question}
             </CardTitle>
