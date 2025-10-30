@@ -28,7 +28,14 @@ export async function upsertUsersFromWhop(userIds: string[]) {
         avatar_url: (u as any).avatar_url || null,
       })
     } catch (e) {
-      // skip failures but continue
+      // Fallback: ensure we at least cache the ID so relations work
+      users.push({
+        whop_user_id: id,
+        name: null,
+        username: null,
+        email: null,
+        avatar_url: null,
+      })
     }
   }
   if (users.length === 0) return { success: false, error: "No valid users" }
