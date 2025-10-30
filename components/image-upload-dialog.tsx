@@ -113,8 +113,8 @@ export function ImageUploadDialog({
         
         <Tabs defaultValue="upload" className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-muted border-border">
-            <TabsTrigger value="upload" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white text-muted-foreground">Upload File</TabsTrigger>
-            <TabsTrigger value="url" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white text-muted-foreground">Image URL</TabsTrigger>
+            <TabsTrigger value="upload" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white text-foreground">Upload File</TabsTrigger>
+            <TabsTrigger value="url" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white text-foreground">Image URL</TabsTrigger>
           </TabsList>
           
           <TabsContent value="upload" className="space-y-4">
@@ -133,7 +133,7 @@ export function ImageUploadDialog({
                   variant="outline"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isLoading}
-                  className="w-full bg-muted border-border text-muted-foreground hover:text-foreground hover:bg-accent hover:border-emerald-500"
+                  className="w-full bg-muted border-border text-foreground hover:text-foreground hover:bg-accent hover:border-emerald-500"
                 >
                   <Upload className="mr-2 h-4 w-4" />
                   {isLoading ? "Processing..." : "Choose File"}

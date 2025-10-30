@@ -12,9 +12,10 @@ interface ResultDetailsModalProps {
   resultId: string
   open: boolean
   onClose: () => void
+  moduleType?: 'module' | 'exam'
 }
 
-export function ResultDetailsModal({ resultId, open, onClose }: ResultDetailsModalProps) {
+export function ResultDetailsModal({ resultId, open, onClose, moduleType }: ResultDetailsModalProps) {
   const [data, setData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -48,7 +49,7 @@ export function ResultDetailsModal({ resultId, open, onClose }: ResultDetailsMod
         <div className="flex items-center justify-between p-6 border-b border-border">
           <div className="flex items-center gap-2">
             <Trophy className="h-6 w-6 text-emerald-500" />
-            <h2 className="text-2xl font-semibold text-foreground">Exam Results</h2>
+            <h2 className="text-2xl font-semibold text-foreground">{moduleType === 'exam' ? 'Exam Results' : 'Module Results'}</h2>
           </div>
           <Button
             variant="ghost"

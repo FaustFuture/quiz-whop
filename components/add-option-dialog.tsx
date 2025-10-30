@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { createAlternative, getAlternatives } from "@/app/actions/alternatives"
+import { uploadImageToStorage } from "@/app/actions/storage"
 import { useRouter } from "next/navigation"
 
 interface AddOptionDialogProps {
@@ -29,6 +30,7 @@ export function AddOptionDialog({ exerciseId }: AddOptionDialogProps) {
   const [isCorrect, setIsCorrect] = useState(false)
   const [explanation, setExplanation] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [imageUrl, setImageUrl] = useState("")
   const [existingAlternatives, setExistingAlternatives] = useState<any[]>([])
   const [hasCorrectAlternative, setHasCorrectAlternative] = useState(false)
   const router = useRouter()
@@ -55,6 +57,7 @@ export function AddOptionDialog({ exerciseId }: AddOptionDialogProps) {
     setContent("")
     setExplanation("")
     setIsCorrect(false)
+    setImageUrl("")
     setExistingAlternatives([])
     setHasCorrectAlternative(false)
   }
@@ -69,11 +72,16 @@ export function AddOptionDialog({ exerciseId }: AddOptionDialogProps) {
     setIsLoading(true)
     
     try {
-      const result = await createAlternative(exerciseId, content, isCorrect, explanation)
+      const result = await createAlternative(exerciseId, content, isCorrect, explanation, imageUrl || null, null)
       
       if (result.success) {
         resetForm()
         setOpen(false)
+        // Preserve current exercise view after refresh
+        try {
+          const path = typeof window !== 'undefined' ? window.location.pathname : ''
+          if (path) router.replace(`${path}?exerciseId=${exerciseId}`)
+        } catch {}
         router.refresh()
       } else {
         console.error("Failed to create alternative:", result.error)
@@ -146,7 +154,58 @@ export function AddOptionDialog({ exerciseId }: AddOptionDialogProps) {
               />
             </div>
           </div>
-          <DialogFooter>
+          <div className="grid gap-2">
+            <Label className="text-foreground">Option Image (one)</Label>
+            <div className="flex gap-2">
+              <Input
+                type="url"
+                placeholder="https://..."
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isLoading}
+                onClick={async () => {
+                  try {
+                    const inp = document.createElement('input')
+                    inp.type = 'file'
+                    inp.accept = 'image/*'
+                    inp.onchange = async (ev: any) => {
+                      const file = ev.target.files?.[0]
+                      if (!file) return
+                      setIsLoading(true)
+                      try {
+                        const res = await uploadImageToStorage(file)
+                        if (res.success && res.url) setImageUrl(res.url)
+                        else alert(res.error || 'Upload failed')
+                      } finally {
+                        setIsLoading(false)
+                      }
+                    }
+                    inp.click()
+                  } catch {}
+                }}
+                className="bg-muted border-border text-foreground hover:text-foreground hover:bg-accent hover:border-emerald-500"
+              >Upload</Button>
+              {imageUrl && (
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setImageUrl("")}
+                  className="bg-muted border-border text-foreground hover:text-foreground hover:bg-accent hover:border-red-500"
+                >Remove</Button>
+              )}
+            </div>
+            {imageUrl && (
+              <div className="relative w-full h-48 rounded border overflow-auto mt-2">
+                <img src={imageUrl} alt="Option preview" className="w-full h-full object-contain" />
+              </div>
+            )}
+          </div>
+          <DialogFooter className="gap-3 pt-6">
             <Button
               type="button"
               variant="outline"

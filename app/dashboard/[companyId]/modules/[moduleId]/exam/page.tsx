@@ -65,7 +65,7 @@ export default async function ExamPage({ params }: ExamPageProps) {
           <Link href={`/dashboard/${companyId}`}>
             <Button variant="ghost" className="mb-4 gap-2">
               <ArrowLeft className="h-4 w-4" />
-              Back to Modules
+              Back to Dashboard
             </Button>
           </Link>
           
@@ -87,6 +87,8 @@ export default async function ExamPage({ params }: ExamPageProps) {
           moduleId={moduleId}
           userId={userId}
           userName={userName}
+          moduleType={module.type}
+          isUnlocked={module.is_unlocked}
         />
       </main>
     </div>

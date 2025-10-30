@@ -10,9 +10,11 @@ export type Module = {
   description: string | null
   order: number
   created_at: string
+  type: 'module' | 'exam'
+  is_unlocked: boolean
 }
 
-export async function createModule(companyId: string, title: string, description: string) {
+export async function createModule(companyId: string, title: string, description: string, type: 'module' | 'exam' = 'module') {
   try {
     // Get the highest order number for this company
     const { data: existingModules } = await supabase
@@ -33,6 +35,8 @@ export async function createModule(companyId: string, title: string, description
         title,
         description,
         order: nextOrder,
+        type,
+        is_unlocked: type === 'module' ? true : false, // Modules are always unlocked, exams start locked
       })
       .select()
       .single()
@@ -154,5 +158,49 @@ export async function deleteModule(moduleId: string, companyId: string) {
   } catch (error) {
     console.error("Error deleting module:", error)
     return { success: false, error: "Failed to delete module" }
+  }
+}
+
+export async function unlockExam(moduleId: string, companyId: string) {
+  try {
+    const { error } = await supabase
+      .from("modules")
+      .update({ is_unlocked: true })
+      .eq("id", moduleId)
+      .eq("company_id", companyId)
+      .eq("type", "exam")
+
+    if (error) {
+      console.error("Error unlocking exam:", error)
+      return { success: false, error: error.message }
+    }
+
+    revalidatePath(`/dashboard/${companyId}`, "page")
+    return { success: true }
+  } catch (error) {
+    console.error("Error unlocking exam:", error)
+    return { success: false, error: "Failed to unlock exam" }
+  }
+}
+
+export async function lockExam(moduleId: string, companyId: string) {
+  try {
+    const { error } = await supabase
+      .from("modules")
+      .update({ is_unlocked: false })
+      .eq("id", moduleId)
+      .eq("company_id", companyId)
+      .eq("type", "exam")
+
+    if (error) {
+      console.error("Error locking exam:", error)
+      return { success: false, error: error.message }
+    }
+
+    revalidatePath(`/dashboard/${companyId}`, "page")
+    return { success: true }
+  } catch (error) {
+    console.error("Error locking exam:", error)
+    return { success: false, error: "Failed to lock exam" }
   }
 }

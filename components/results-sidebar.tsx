@@ -20,19 +20,37 @@ interface ResultsSidebarProps {
 export function ResultsSidebar({ results, modules }: ResultsSidebarProps) {
   const [selectedResultId, setSelectedResultId] = useState<string | null>(null)
   const [selectedModuleId, setSelectedModuleId] = useState<string>("all")
+  const [selectedType, setSelectedType] = useState<"all" | "module" | "exam">("all")
   const [isExporting, setIsExporting] = useState(false)
   const [timeRange, setTimeRange] = useState<"all" | "day" | "week" | "month">("all")
   const [selectedDate, setSelectedDate] = useState<string>(() => new Date().toISOString().split("T")[0])
   const [selectedWeek, setSelectedWeek] = useState<string>(() => getISOWeekValue(new Date()))
   const [selectedMonth, setSelectedMonth] = useState<string>(() => new Date().toISOString().slice(0, 7))
 
-  // Filter results based on selected module
+  // Quick lookup for module type
+  const moduleIdToType = useMemo(() => {
+    const map: Record<string, string> = {}
+    for (const m of modules) map[m.id] = (m as any).type || "module"
+    return map
+  }, [modules])
+
+  // Options for module select honoring selected type
+  const selectableModules = useMemo(() => {
+    if (selectedType === "all") return modules
+    return modules.filter((m) => ((m as any).type || "module") === selectedType)
+  }, [modules, selectedType])
+
+  // Filter results based on selected type and module
   const filteredResults = useMemo(() => {
-    if (selectedModuleId === "all") {
-      return results
+    let base = results
+    if (selectedType !== "all") {
+      base = base.filter((r) => moduleIdToType[r.module_id] === selectedType)
     }
-    return results.filter(result => result.module_id === selectedModuleId)
-  }, [results, selectedModuleId])
+    if (selectedModuleId !== "all") {
+      base = base.filter((r) => r.module_id === selectedModuleId)
+    }
+    return base
+  }, [results, selectedModuleId, selectedType, moduleIdToType])
 
   // Secondary filter by selected calendar period
   const timeFilteredResults = useMemo(() => {
@@ -268,7 +286,7 @@ export function ResultsSidebar({ results, modules }: ResultsSidebarProps) {
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-sm text-foreground">
                 <Filter className="h-4 w-4" />
-                <span className="text-foreground">Filter by Module</span>
+                <span className="text-foreground">Filter by {selectedType === "exam" ? "Exam" : selectedType === "module" ? "Module" : "Module/Exam"}</span>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 {selectedModuleId === "all" 
@@ -277,16 +295,28 @@ export function ResultsSidebar({ results, modules }: ResultsSidebarProps) {
                 }
               </p>
               <div className="flex flex-wrap items-center gap-2">
+                {/* Type Filter */}
+                <Select value={selectedType} onValueChange={(v) => setSelectedType(v as any)}>
+                  <SelectTrigger className="bg-muted border-border text-foreground h-9 w-[150px]">
+                    <SelectValue placeholder="All types" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-muted border-border">
+                    <SelectItem value="all" className="text-foreground focus:bg-accent">All types</SelectItem>
+                    <SelectItem value="module" className="text-foreground focus:bg-accent">Module</SelectItem>
+                    <SelectItem value="exam" className="text-foreground focus:bg-accent">Exam</SelectItem>
+                  </SelectContent>
+                </Select>
+
                 <Select value={selectedModuleId} onValueChange={setSelectedModuleId}>
                   <SelectTrigger className="bg-muted border-border text-foreground h-9">
                     <SelectValue placeholder="All modules" />
                   </SelectTrigger>
                   <SelectContent className="bg-muted border-border">
                     <SelectItem value="all" className="text-foreground focus:bg-accent">
-                      All modules ({results.length})
+                      {selectedType === "exam" ? "All exams" : selectedType === "module" ? "All modules" : "All modules/exams"} ({filteredResults.length})
                     </SelectItem>
-                    {modules.map((module) => {
-                      const moduleResultCount = results.filter(r => r.module_id === module.id).length
+                    {selectableModules.map((module) => {
+                      const moduleResultCount = filteredResults.filter(r => r.module_id === module.id).length
                       return (
                         <SelectItem 
                           key={module.id} 
@@ -450,6 +480,15 @@ export function ResultsSidebar({ results, modules }: ResultsSidebarProps) {
                           >
                             {Math.round(result.score)}%
                           </span>
+                          <span
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                              moduleIdToType[result.module_id] === 'exam'
+                                ? 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400'
+                                : 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
+                            }`}
+                          >
+                            {moduleIdToType[result.module_id] === 'exam' ? 'Exam' : 'Module'}
+                          </span>
                         </div>
                         
                         <p className="text-xs text-muted-foreground truncate mb-1">
@@ -480,13 +519,18 @@ export function ResultsSidebar({ results, modules }: ResultsSidebarProps) {
         </CardContent>
       </Card>
 
-      {selectedResultId && (
-        <ResultDetailsModal
-          resultId={selectedResultId}
-          open={selectedResultId !== null}
-          onClose={() => setSelectedResultId(null)}
-        />
-      )}
+      {selectedResultId && (() => {
+        const selectedResult = timeFilteredResults.find(r => r.id === selectedResultId)
+        const resultModuleType = selectedResult ? moduleIdToType[selectedResult.module_id] : 'module'
+        return (
+          <ResultDetailsModal
+            resultId={selectedResultId}
+            open={selectedResultId !== null}
+            onClose={() => setSelectedResultId(null)}
+            moduleType={resultModuleType as 'module' | 'exam'}
+          />
+        )
+      })()}
     </>
   )
 }

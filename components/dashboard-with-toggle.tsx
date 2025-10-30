@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Camera } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { ModulesSection } from "@/components/modules-section"
-import { MemberModulesViewClient } from "@/components/member-modules-view-client"
+import { MemberModulesViewWithFilter } from "@/components/member-modules-view-with-filter"
 import { ResultsSidebar } from "@/components/results-sidebar"
 // import { CompanyLogoUpload } from "@/components/company-logo-upload"
 import { ThemeToggle } from "@/components/theme-toggle"
@@ -82,7 +82,7 @@ export function DashboardWithToggle({
         </div>
       ) : (
         <main className="container mx-auto p-8">
-          <MemberModulesViewClient 
+          <MemberModulesViewWithFilter 
             companyId={companyId} 
             userId={userId} 
             modules={memberModules}

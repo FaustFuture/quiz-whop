@@ -8,7 +8,10 @@ export type Exercise = {
   module_id: string
   question: string
   image_url: string | null
+  image_urls?: string[] | null
+  video_url?: string | null
   image_display_size: string
+  image_layout: 'grid' | 'carousel' | 'vertical' | 'horizontal'
   weight: number
   order: number
   created_at: string
@@ -39,6 +42,9 @@ export async function createExercise(
         module_id: moduleId,
         question,
         image_url: imageUrl || null,
+        image_urls: null,
+        video_url: null,
+        image_layout: 'grid',
         weight,
         order: nextOrder,
       })
@@ -106,7 +112,7 @@ export async function updateExerciseOrder(
 export async function updateExercise(
   exerciseId: string,
   moduleId: string,
-  updates: { question?: string; image_url?: string }
+  updates: { question?: string; image_url?: string; image_urls?: string[] | null; video_url?: string; image_layout?: string }
 ) {
   try {
     const { data, error } = await supabase
@@ -151,6 +157,31 @@ export async function updateExerciseImageDisplaySize(
     return { success: true }
   } catch (error) {
     console.error("Error updating image display size:", error)
+    return { success: false, error: "An unexpected error occurred" }
+  }
+}
+
+export async function updateExerciseImageLayout(
+  exerciseId: string, 
+  moduleId: string, 
+  imageLayout: string
+) {
+  try {
+    const { error } = await supabase
+      .from("exercises")
+      .update({ image_layout: imageLayout })
+      .eq("id", exerciseId)
+      .eq("module_id", moduleId)
+
+    if (error) {
+      console.error("Error updating image layout:", error)
+      return { success: false, error: error.message }
+    }
+
+    revalidatePath(`/dashboard/[companyId]/modules/[moduleId]`, "page")
+    return { success: true }
+  } catch (error) {
+    console.error("Error updating image layout:", error)
     return { success: false, error: "An unexpected error occurred" }
   }
 }
