@@ -55,6 +55,7 @@ export async function resolveUsernamesToIds(usernames: string[]) {
   const usersToUpsert: any[] = []
 
   // 1) Try local cache first
+  let foundUsernames = new Set<string>()
   try {
     const { data: cached } = await supabase
       .from("users")
@@ -65,6 +66,7 @@ export async function resolveUsernamesToIds(usernames: string[]) {
       const hit = cachedMap.get(username)
       if (hit) {
         userIds.push(hit.whop_user_id)
+        foundUsernames.add(username)
       }
     }
   } catch (e) {
@@ -72,12 +74,18 @@ export async function resolveUsernamesToIds(usernames: string[]) {
   }
 
   // 2) For any usernames not found locally, try Whop API and cache
-  const remaining = unique.filter(u => !userIds.length || !userIds.find(id => id && u))
+  const remaining = unique.filter(u => !foundUsernames.has(u))
   for (const username of remaining) {
     try {
-      const usersResponse = await whopsdk.users.list({ username })
-      if (usersResponse.data && usersResponse.data.length > 0) {
-        const user = usersResponse.data[0]
+      const usersApi: any = (whopsdk as any).users
+      let resp: any = null
+      if (usersApi && typeof usersApi.list === 'function') {
+        resp = await usersApi.list({ username })
+      } else if (usersApi && typeof usersApi.search === 'function') {
+        resp = await usersApi.search({ username })
+      }
+      if (resp && resp.data && resp.data.length > 0) {
+        const user = resp.data[0]
         userIds.push(user.id)
         usersToUpsert.push({
           whop_user_id: user.id,

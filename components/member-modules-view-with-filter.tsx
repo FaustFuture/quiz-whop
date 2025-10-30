@@ -92,6 +92,7 @@ export function MemberModulesViewWithFilter({
               userId={userId}
               hasResult={!!userResults[module.id]}
               result={userResults[module.id]}
+              canRetakeExam={!!retakeAllowed[module.id]}
             />
           ))}
         </div>
@@ -106,9 +107,10 @@ interface ModuleExamCardProps {
   userId: string
   hasResult: boolean
   result: any
+  canRetakeExam: boolean
 }
 
-function ModuleExamCard({ module, companyId, userId, hasResult, result }: ModuleExamCardProps) {
+function ModuleExamCard({ module, companyId, userId, hasResult, result, canRetakeExam }: ModuleExamCardProps) {
   return (
     <Card className="relative group hover:shadow-xl border-border bg-card hover:bg-muted hover:border-emerald-500/50 flex flex-col min-h-64">
       <CardHeader className="pb-4">
@@ -183,7 +185,7 @@ function ModuleExamCard({ module, companyId, userId, hasResult, result }: Module
                   </Button>
                 </Link>
               ) : (
-                <Button className="w-full gap-2" variant="secondary" disabled={!retakeAllowed[module.id]}>
+                <Button className="w-full gap-2" variant="secondary" disabled={!canRetakeExam}>
                   <RotateCcw className="h-4 w-4" />
                   Retake Exam
                 </Button>

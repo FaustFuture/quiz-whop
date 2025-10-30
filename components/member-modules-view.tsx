@@ -49,6 +49,7 @@ export async function MemberModulesView({ companyId, userId }: MemberModulesView
               module={module} 
               companyId={companyId} 
               userId={userId}
+              canRetakeExam={retakeAllowed.has(module.id)}
             />
           ))}
         </div>
@@ -61,9 +62,10 @@ interface ModuleExamCardProps {
   module: Module
   companyId: string
   userId: string
+  canRetakeExam: boolean
 }
 
-async function ModuleExamCard({ module, companyId, userId }: ModuleExamCardProps) {
+async function ModuleExamCard({ module, companyId, userId, canRetakeExam }: ModuleExamCardProps) {
   // Fetch the most recent result for this user and module
   const result = await getResultsByUserAndModule(userId, module.id)
   const hasResult = result !== null
@@ -130,7 +132,7 @@ async function ModuleExamCard({ module, companyId, userId }: ModuleExamCardProps
                   </Button>
                 </Link>
               ) : (
-                <Button className="w-full gap-2" variant="secondary" disabled={!retakeAllowed.has(module.id)}>
+                <Button className="w-full gap-2" variant="secondary" disabled={!canRetakeExam}>
                   <RotateCcw className="h-4 w-4" />
                   Retake Exam
                 </Button>
