@@ -188,4 +188,28 @@ export async function hasExamRetakeAccess(moduleId: string, userId: string) {
   }
 }
 
+export async function listExamRetakes(moduleId: string) {
+  try {
+    const { data, error } = await supabase
+      .from("exam_retakes")
+      .select("id, user_id, granted_by, granted_at, used_at, users:users!exam_retakes_user_id_fkey(whop_user_id, username, name, email, avatar_url)")
+      .eq("module_id", moduleId)
+      .order("granted_at", { ascending: false })
+
+    if (error) return { success: false, error: error.message, data: [] }
+
+    const rows = (data || []).map((r: any) => ({
+      id: r.id,
+      user_id: r.user_id,
+      username: r.users?.username || null,
+      name: r.users?.name || null,
+      granted_at: r.granted_at,
+      used_at: r.used_at || null,
+    }))
+    return { success: true, data: rows }
+  } catch (e) {
+    return { success: false, error: "Failed to list exam retakes", data: [] }
+  }
+}
+
 

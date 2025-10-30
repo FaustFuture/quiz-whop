@@ -14,7 +14,7 @@ import {
 import { Progress } from "@/components/ui/progress"
 import { type Exercise } from "@/app/actions/exercises"
 import { type Alternative } from "@/app/actions/alternatives"
-import { saveExamResult, getUserRetakeStats, type AnswerSubmission } from "@/app/actions/results"
+import { saveExamResult, getUserRetakeStats, getResultWithAnswers, type AnswerSubmission } from "@/app/actions/results"
 import { hasExamRetakeAccess } from "@/app/actions/users"
 import Image from "next/image"
 
@@ -73,9 +73,25 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
     const loadRetakeStats = async () => {
       try {
         const stats = await getUserRetakeStats(userId, moduleId)
-        if (stats.success) {
+        if (stats.success && stats.data) {
           setRetakeStats(stats.data)
-          totalAttempts = stats.data?.totalAttempts || 0
+          totalAttempts = stats.data.totalAttempts || 0
+          // If we are in review mode and have attempts, hydrate answers from latest attempt
+          if ((viewParam === "results" || viewParam === "1") && totalAttempts > 0) {
+            const latestAttemptId = stats.data.attempts?.[0]?.id
+            if (latestAttemptId) {
+              const detailed = await getResultWithAnswers(latestAttemptId)
+              if (detailed.success && detailed.data) {
+                const hydrated = (detailed.data.answers || []).map((a: any) => ({
+                  questionId: a.exercise_id,
+                  selectedAlternativeId: a.selected_alternative_id,
+                  isCorrect: !!a.is_correct,
+                  timeSpentSeconds: a.time_spent_seconds ?? 0,
+                })) as any
+                setAnswers(hydrated as any)
+              }
+            }
+          }
         }
       } catch (error) {
         console.error("Error loading retake stats:", error)

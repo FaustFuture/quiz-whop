@@ -62,9 +62,11 @@ export function DashboardWithToggle({
                 />
               </div>
             )}
-            <span className="text-sm text-foreground">
-              {isAdmin && showMemberView ? "Member" : isAdmin ? "Admin" : "Member"}
-            </span>
+            {isAdmin && (
+              <span className="text-sm text-foreground">
+                {showMemberView ? "" : "Admin"}
+              </span>
+            )}
           </div>
         </div>
       </header>
