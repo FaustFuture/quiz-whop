@@ -50,18 +50,36 @@ export async function upsertUsersFromWhop(userIds: string[]) {
 
 export async function resolveUsernamesToIds(usernames: string[]) {
   if (!Array.isArray(usernames) || usernames.length === 0) return { success: false, error: "No usernames provided" }
-  const unique = Array.from(new Set(usernames))
+  const unique = Array.from(new Set(usernames.map(u => (u || "").trim()).filter(Boolean)))
   const userIds: string[] = []
-  const users: any[] = []
-  
-  for (const username of unique) {
+  const usersToUpsert: any[] = []
+
+  // 1) Try local cache first
+  try {
+    const { data: cached } = await supabase
+      .from("users")
+      .select("whop_user_id, username, name, email, avatar_url")
+      .in("username", unique)
+    const cachedMap = new Map((cached || []).map(u => [u.username, u]))
+    for (const username of unique) {
+      const hit = cachedMap.get(username)
+      if (hit) {
+        userIds.push(hit.whop_user_id)
+      }
+    }
+  } catch (e) {
+    // ignore cache errors, we'll fallback to API below
+  }
+
+  // 2) For any usernames not found locally, try Whop API and cache
+  const remaining = unique.filter(u => !userIds.length || !userIds.find(id => id && u))
+  for (const username of remaining) {
     try {
-      // Search for user by username using Whop SDK
       const usersResponse = await whopsdk.users.list({ username })
       if (usersResponse.data && usersResponse.data.length > 0) {
         const user = usersResponse.data[0]
         userIds.push(user.id)
-        users.push({
+        usersToUpsert.push({
           whop_user_id: user.id,
           name: user.name || null,
           username: user.username || null,
@@ -71,22 +89,19 @@ export async function resolveUsernamesToIds(usernames: string[]) {
       }
     } catch (e) {
       console.error(`Failed to resolve username ${username}:`, e)
-      // Continue with other usernames
     }
   }
-  
+
   if (userIds.length === 0) return { success: false, error: "No valid usernames found" }
 
-  // Cache the resolved users
-  if (users.length > 0) {
+  if (usersToUpsert.length > 0) {
     const { error } = await supabase
       .from("users")
-      .upsert(users, { onConflict: "whop_user_id" })
-    
+      .upsert(usersToUpsert, { onConflict: "whop_user_id" })
     if (error) console.error("Failed to cache users:", error)
   }
 
-  return { success: true, data: userIds }
+  return { success: true, data: Array.from(new Set(userIds)) }
 }
 
 export async function getCachedUsersByIds(userIds: string[]) {

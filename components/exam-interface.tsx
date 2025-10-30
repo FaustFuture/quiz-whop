@@ -427,7 +427,41 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
     return null
   }
 
-  if (showResults || viewResults) {
+  // Preview helpers for review mode (read-only view)
+  const getPreviewStyle = (
+    alternativeId: string,
+    isCorrect: boolean,
+    selectedId: string | null
+  ) => {
+    if (!selectedId) return "border-border opacity-50"
+    if (alternativeId === selectedId) {
+      return isCorrect
+        ? "border-green-500 bg-green-50 dark:bg-green-950"
+        : "border-red-500 bg-red-50 dark:bg-red-950"
+    }
+    if (isCorrect && !currentQuestion.alternatives.find(a => a.id === selectedId)?.is_correct) {
+      return "border-green-500 bg-green-50 dark:bg-green-950"
+    }
+    return "border-border opacity-50"
+  }
+
+  const getPreviewIcon = (
+    alternativeId: string,
+    isCorrect: boolean,
+    selectedId: string | null
+  ) => {
+    if (!selectedId) return null
+    if (alternativeId === selectedId) {
+      return isCorrect ? <Check className="h-5 w-5 text-green-600" /> : <X className="h-5 w-5 text-red-600" />
+    }
+    if (isCorrect && !currentQuestion.alternatives.find(a => a.id === selectedId)?.is_correct) {
+      return <Check className="h-5 w-5 text-green-600" />
+    }
+    return null
+  }
+
+  // Completed summary view only when finishing an attempt
+  if (showResults) {
     const correctAnswers = answers.filter(a => a.isCorrect).length
     const totalQuestions = questions.length
     const scorePercentage = (correctAnswers / totalQuestions) * 100
@@ -514,9 +548,10 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
                 Back to {moduleType === 'module' ? 'Quiz' : 'Exam'}
               </Button>
             )}
-            {(moduleType === 'module' || (moduleType === 'exam' && hasRetakeAccess === true)) && (
+            {(moduleType === 'module' || moduleType === 'exam') && (
               <Button 
                 variant="outline" 
+                disabled={moduleType === 'exam' && hasRetakeAccess !== true}
                 onClick={() => {
                   setCurrentQuestionIndex(0)
                   setAnswers([])
@@ -542,6 +577,124 @@ export function ExamInterface({ questions, moduleTitle, companyId, moduleId, use
             )}
           </CardFooter>
         </Card>
+      </div>
+    )
+  }
+
+  // Read-only review mode: user navigates questions, cannot answer; shows correct/selected
+  if (viewResults) {
+    const reviewAnswer = answers.find(a => a.questionId === currentQuestion.id) || null
+    const selectedId = reviewAnswer ? reviewAnswer.selectedAlternativeId : null
+    return (
+      <div className="max-w-2xl mx-auto">
+        <Card className="mb-6 border-border">
+          <CardHeader>
+            <CardTitle className="text-2xl">
+              {currentQuestion.question}
+            </CardTitle>
+            {currentQuestion.weight > 1 && (
+              <p className="text-sm text-muted-foreground">
+                {currentQuestion.weight} points
+              </p>
+            )}
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {currentQuestion.alternatives.map((alternative) => (
+              <div
+                key={alternative.id}
+                className={`p-4 rounded-lg border-2 transition-all ${getPreviewStyle(
+                  alternative.id,
+                  alternative.is_correct,
+                  selectedId
+                )}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1">
+                    {(() => {
+                      const imgs: string[] = (alternative as any).image_urls && (alternative as any).image_urls.length > 0
+                        ? (alternative as any).image_urls.slice(0,4)
+                        : ((alternative as any).image_url ? [(alternative as any).image_url] : [])
+                      if (imgs.length === 0) return null
+                      if (imgs.length === 1) {
+                        return (
+                          <div className="mb-2 relative w-full pt-[56%] bg-muted rounded border overflow-hidden group">
+                            <img src={imgs[0]} alt="Option image" className="absolute inset-0 h-full w-full object-cover" />
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setFullscreenImage(imgs[0]); }}
+                              className="absolute top-1 right-1 p-1 bg-black/50 rounded text-white hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <Maximize2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        )
+                      }
+                      return (
+                        <div className="mb-2 grid grid-cols-2 gap-2">
+                          {imgs.map((u, i) => (
+                            <div key={i} className="relative w-full pt-[100%] bg-muted rounded border overflow-hidden group">
+                              <img src={u} alt={`Option image ${i+1}`} className="absolute inset-0 h-full w-full object-cover" />
+                              <button
+                                onClick={(e) => { e.stopPropagation(); setFullscreenImage(u); }}
+                                className="absolute top-1 right-1 p-1 bg-black/50 rounded text-white hover:bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <Maximize2 className="w-2 h-2" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )
+                    })()}
+                    <p className="font-medium">{alternative.content}</p>
+                    {(alternative.explanation && (alternative.id === selectedId || alternative.is_correct)) && (
+                      <p className="text-sm text-muted-foreground mt-2">
+                        {alternative.explanation}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex-shrink-0">
+                    {getPreviewIcon(alternative.id, alternative.is_correct, selectedId)}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+          <CardFooter className="flex justify-end">
+            <Button
+              onClick={() => {
+                if (currentQuestionIndex < questions.length - 1) {
+                  setCurrentQuestionIndex(currentQuestionIndex + 1)
+                } else {
+                  setCurrentQuestionIndex(0)
+                }
+              }}
+              className="gap-2"
+            >
+              {currentQuestionIndex < questions.length - 1 ? (
+                <>Next Question <ChevronRight className="h-4 w-4" /></>
+              ) : (
+                <>Start Over <ChevronRight className="h-4 w-4" /></>
+              )}
+            </Button>
+          </CardFooter>
+        </Card>
+
+        {/* Navigation Dots */}
+        <div className="flex justify-center gap-2">
+          {questions.map((_, index) => {
+            const isCurrent = index === currentQuestionIndex
+            const hasAttempt = answers.some(a => a.questionId === questions[index].id)
+            return (
+              <button
+                key={index}
+                onClick={() => setCurrentQuestionIndex(index)}
+                className={`h-2 rounded-full transition-all ${
+                  isCurrent ? "w-8 bg-primary" : hasAttempt ? "w-2 bg-green-500" : "w-2 bg-secondary"
+                }`}
+                aria-label={`Go to question ${index + 1}`}
+              />
+            )
+          })}
+        </div>
       </div>
     )
   }
