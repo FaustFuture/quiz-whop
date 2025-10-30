@@ -126,12 +126,29 @@ export async function grantExamRetake(moduleId: string, userIds: string[], grant
     // Ensure users are cached
     await upsertUsersFromWhop(userIds)
 
-    const rows = userIds.map((uid) => ({ module_id: moduleId, user_id: uid, granted_by: grantedBy }))
-    const { error } = await supabase.from("exam_retakes").insert(rows)
-    if (error) return { success: false, error: error.message }
+    const rows = userIds.map((uid) => ({ 
+      module_id: moduleId, 
+      user_id: uid, 
+      granted_by: grantedBy,
+      used_at: null // Reset used_at to null when granting/re-granting
+    }))
+    // Use upsert with onConflict to handle duplicates - if grant already exists, update granted_at and reset used_at to null
+    const { error } = await supabase
+      .from("exam_retakes")
+      .upsert(rows, { 
+        onConflict: "module_id,user_id",
+        ignoreDuplicates: false 
+      })
+      .select()
+    
+    if (error) {
+      console.error("Error granting retake:", error)
+      return { success: false, error: error.message }
+    }
     return { success: true }
-  } catch (e) {
-    return { success: false, error: "Failed to grant retake" }
+  } catch (e: any) {
+    console.error("Exception granting retake:", e)
+    return { success: false, error: e?.message || "Failed to grant retake" }
   }
 }
 

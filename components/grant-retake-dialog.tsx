@@ -54,6 +54,17 @@ export function GrantRetakeDialog({ moduleId, companyId }: GrantRetakeDialogProp
     return () => clearTimeout(t)
   }, [input, selected])
 
+  // Refresh granted list when dialog opens
+  useEffect(() => {
+    if (open && grantedOpen) {
+      listExamRetakes(moduleId).then((res) => {
+        if (res.success) {
+          setGranted(res.data as any)
+        }
+      })
+    }
+  }, [open, moduleId])
+
   const handleGrant = async () => {
     const usernames = selected.length > 0 ? selected : parseUsernames(input)
     if (usernames.length === 0) return
@@ -63,13 +74,21 @@ export function GrantRetakeDialog({ moduleId, companyId }: GrantRetakeDialogProp
       const res = await grantExamRetakeByUsernames(moduleId, usernames, "admin")
       if (!res.success) {
         alert(res.error || "Failed to grant retake")
+        setIsLoading(false)
         return
       }
-      setOpen(false)
+      // Refresh the granted list if it's open
+      if (grantedOpen) {
+        const listRes = await listExamRetakes(moduleId)
+        if (listRes.success) {
+          setGranted(listRes.data as any)
+        }
+      }
       setInput("")
       setSelected([])
       setSuggestions([])
       router.refresh()
+      // Don't close the dialog, let admin see the updated list or grant more
     } finally {
       setIsLoading(false)
     }
