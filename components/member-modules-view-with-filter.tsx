@@ -13,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Play, RotateCcw, Trophy } from "lucide-react"
 import Link from "next/link"
 import { type Module } from "@/app/actions/modules"
-import { getUserRetakeGrants } from "@/app/actions/users"
 
 interface MemberModulesViewWithFilterProps {
   companyId: string
@@ -34,12 +33,15 @@ export function MemberModulesViewWithFilter({
   useEffect(() => {
     let mounted = true
     const load = async () => {
-      const res = await getUserRetakeGrants(userId)
-      if (mounted && res.success) {
-        const map: Record<string, boolean> = {}
-        for (const id of (res.data as string[])) map[id] = true
-        setRetakeAllowed(map)
-      }
+      try {
+        const res = await fetch(`/api/retakes/grants?userId=${encodeURIComponent(userId)}`)
+        const json = await res.json()
+        if (mounted && json.success) {
+          const map: Record<string, boolean> = {}
+          for (const id of (json.data as string[])) map[id] = true
+          setRetakeAllowed(map)
+        }
+      } catch {}
     }
     load()
     return () => { mounted = false }
