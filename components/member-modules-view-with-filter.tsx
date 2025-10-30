@@ -185,10 +185,19 @@ function ModuleExamCard({ module, companyId, userId, hasResult, result, canRetak
                   </Button>
                 </Link>
               ) : (
-                <Button className="w-full gap-2" variant="secondary" disabled={!canRetakeExam}>
-                  <RotateCcw className="h-4 w-4" />
-                  Retake Exam
-                </Button>
+                canRetakeExam ? (
+                  <Link href={`/dashboard/${companyId}/modules/${module.id}/exam`}>
+                    <Button className="w-full gap-2 bg-emerald-600 hover:bg-emerald-700">
+                      <RotateCcw className="h-4 w-4" />
+                      Retake Exam
+                    </Button>
+                  </Link>
+                ) : (
+                  <Button className="w-full gap-2" variant="secondary" disabled>
+                    <RotateCcw className="h-4 w-4" />
+                    Retake Exam
+                  </Button>
+                )
               )}
             </div>
           </div>
