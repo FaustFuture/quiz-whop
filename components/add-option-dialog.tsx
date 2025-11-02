@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { createAlternative, getAlternatives } from "@/app/actions/alternatives"
+import { uploadImageToStorage } from "@/app/actions/storage"
 import { useRouter } from "next/navigation"
 
 interface AddOptionDialogProps {
@@ -29,6 +30,7 @@ export function AddOptionDialog({ exerciseId }: AddOptionDialogProps) {
   const [isCorrect, setIsCorrect] = useState(false)
   const [explanation, setExplanation] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [imageUrl, setImageUrl] = useState("")
   const [existingAlternatives, setExistingAlternatives] = useState<any[]>([])
   const [hasCorrectAlternative, setHasCorrectAlternative] = useState(false)
   const router = useRouter()
@@ -55,6 +57,7 @@ export function AddOptionDialog({ exerciseId }: AddOptionDialogProps) {
     setContent("")
     setExplanation("")
     setIsCorrect(false)
+    setImageUrl("")
     setExistingAlternatives([])
     setHasCorrectAlternative(false)
   }
@@ -69,11 +72,16 @@ export function AddOptionDialog({ exerciseId }: AddOptionDialogProps) {
     setIsLoading(true)
     
     try {
-      const result = await createAlternative(exerciseId, content, isCorrect, explanation)
+      const result = await createAlternative(exerciseId, content, isCorrect, explanation, imageUrl || null, null)
       
       if (result.success) {
         resetForm()
         setOpen(false)
+        // Preserve current exercise view after refresh
+        try {
+          const path = typeof window !== 'undefined' ? window.location.pathname : ''
+          if (path) router.replace(`${path}?exerciseId=${exerciseId}`)
+        } catch {}
         router.refresh()
       } else {
         console.error("Failed to create alternative:", result.error)
@@ -90,22 +98,22 @@ export function AddOptionDialog({ exerciseId }: AddOptionDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2 bg-black border-gray-200/10 text-gray-400 hover:text-white hover:bg-gray-800 hover:border-emerald-500">
+        <Button variant="outline" size="sm" className="gap-2 bg-muted border-border text-muted-foreground hover:text-foreground hover:bg-accent hover:border-emerald-500">
           <Plus className="h-4 w-4" />
           Add Option
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] bg-[#141414] border-gray-200/10">
+      <DialogContent className="sm:max-w-[500px] bg-card border-border">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle className="text-white">Add New Option</DialogTitle>
-            <DialogDescription className="text-gray-400">
+            <DialogTitle className="text-foreground">Add New Option</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
               Add a new answer option for this exercise. {existingAlternatives.length === 0 ? "This will be marked as correct by default since it's the first option." : "Mark it as correct if it's the right answer."}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="content" className="text-gray-300">
+              <Label htmlFor="content" className="text-foreground">
                 Option Content <span className="text-red-400">*</span>
               </Label>
               <Input
@@ -115,7 +123,7 @@ export function AddOptionDialog({ exerciseId }: AddOptionDialogProps) {
                 onChange={(e) => setContent(e.target.value)}
                 required
                 autoFocus
-                className="bg-[#1a1a1a] border-gray-200/10 text-white placeholder:text-gray-500"
+                className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
               />
             </div>
             
@@ -127,7 +135,7 @@ export function AddOptionDialog({ exerciseId }: AddOptionDialogProps) {
                 disabled={existingAlternatives.length === 0 || !hasCorrectAlternative}
                 className="border-gray-600 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
               />
-              <Label htmlFor="is-correct" className="text-sm font-medium text-gray-300">
+              <Label htmlFor="is-correct" className="text-sm font-medium text-foreground">
                 {existingAlternatives.length === 0 || !hasCorrectAlternative 
                   ? "This is the correct answer (required for first option)" 
                   : "This is the correct answer"}
@@ -135,24 +143,75 @@ export function AddOptionDialog({ exerciseId }: AddOptionDialogProps) {
             </div>
             
             <div className="grid gap-2">
-              <Label htmlFor="explanation" className="text-gray-300">Explanation (optional)</Label>
+              <Label htmlFor="explanation" className="text-foreground">Explanation (optional)</Label>
               <Textarea
                 id="explanation"
                 placeholder="Explain why this option is correct or incorrect..."
                 value={explanation}
                 onChange={(e) => setExplanation(e.target.value)}
                 rows={3}
-                className="bg-[#1a1a1a] border-gray-200/10 text-white placeholder:text-gray-500"
+                className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
               />
             </div>
           </div>
-          <DialogFooter>
+          <div className="grid gap-2">
+            <Label className="text-foreground">Option Image (one)</Label>
+            <div className="flex gap-2">
+              <Input
+                type="url"
+                placeholder="https://..."
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isLoading}
+                onClick={async () => {
+                  try {
+                    const inp = document.createElement('input')
+                    inp.type = 'file'
+                    inp.accept = 'image/*'
+                    inp.onchange = async (ev: any) => {
+                      const file = ev.target.files?.[0]
+                      if (!file) return
+                      setIsLoading(true)
+                      try {
+                        const res = await uploadImageToStorage(file)
+                        if (res.success && res.url) setImageUrl(res.url)
+                        else alert(res.error || 'Upload failed')
+                      } finally {
+                        setIsLoading(false)
+                      }
+                    }
+                    inp.click()
+                  } catch {}
+                }}
+                className="bg-muted border-border text-foreground hover:text-foreground hover:bg-accent hover:border-emerald-500"
+              >Upload</Button>
+              {imageUrl && (
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => setImageUrl("")}
+                  className="bg-muted border-border text-foreground hover:text-foreground hover:bg-accent hover:border-red-500"
+                >Remove</Button>
+              )}
+            </div>
+            {imageUrl && (
+              <div className="relative w-full h-48 rounded border overflow-auto mt-2">
+                <img src={imageUrl} alt="Option preview" className="w-full h-full object-contain" />
+              </div>
+            )}
+          </div>
+          <DialogFooter className="gap-3 pt-6">
             <Button
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
               disabled={isLoading}
-              className="bg-black border-gray-200/10 text-gray-400 hover:text-white hover:bg-gray-800"
+              className="bg-muted border-border text-muted-foreground hover:text-foreground hover:bg-accent"
             >
               Cancel
             </Button>

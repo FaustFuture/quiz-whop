@@ -28,14 +28,14 @@ export function MemberModulesViewClient({
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight text-white">Available Modules</h2>
+        <h2 className="text-3xl font-bold tracking-tight text-foreground">Available Modules</h2>
         <p className="text-gray-400">
           Select a module to take the exam
         </p>
       </div>
       
       {modules.length === 0 ? (
-        <div className="rounded-xl border border-gray-200/10 bg-[#141414] p-12 text-center">
+        <div className="rounded-xl border border-border bg-card p-12 text-center">
           <p className="text-gray-400">
             No modules available yet. Please check back later.
           </p>
@@ -68,13 +68,13 @@ interface ModuleExamCardProps {
 
 function ModuleExamCard({ module, companyId, userId, hasResult, result }: ModuleExamCardProps) {
   return (
-    <Card className="relative group hover:shadow-xl transition-all border-gray-200/10 bg-[#141414] hover:bg-[#1a1a1a] hover:border-emerald-500/50 flex flex-col min-h-64">
+    <Card className="relative group hover:shadow-xl border-border bg-card hover:bg-muted hover:border-emerald-500/50 flex flex-col min-h-64">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1">
-            <CardTitle className="text-2xl text-white">{module.title}</CardTitle>
+            <CardTitle className="text-2xl text-foreground">{module.title}</CardTitle>
             {module.description && (
-              <CardDescription className="mt-3 line-clamp-3 text-gray-400 text-base">
+              <CardDescription className="mt-3 line-clamp-3 text-muted-foreground text-base">
                 {module.description}
               </CardDescription>
             )}
@@ -85,19 +85,19 @@ function ModuleExamCard({ module, companyId, userId, hasResult, result }: Module
         {hasResult ? (
           <div className="space-y-6 flex flex-col flex-1">
             {/* Show previous result */}
-            <div className="rounded-xl bg-[#1a1a1a] border border-gray-200/10 p-5 space-y-3">
+            <div className="rounded-xl bg-muted border border-border p-5 space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-400">
+                <span className="text-sm font-medium text-muted-foreground">
                   Previous Result
                 </span>
                 <div className="flex items-center gap-2">
                   <Trophy className="w-4 h-4 text-emerald-500" />
-                  <span className="text-lg font-bold text-white">
+                  <span className="text-lg font-bold text-foreground">
                     {result.score}%
                   </span>
                 </div>
               </div>
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-muted-foreground">
                 Completed {new Date(result.created_at).toLocaleDateString()}
               </div>
             </div>
@@ -123,7 +123,7 @@ function ModuleExamCard({ module, companyId, userId, hasResult, result }: Module
             >
               <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
                 <Play className="w-4 h-4 mr-2" />
-                Take Exam
+                Take Quiz
               </Button>
             </Link>
           </div>

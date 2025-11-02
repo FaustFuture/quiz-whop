@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { AddModuleDialog } from "@/components/add-module-dialog"
 import { SortableModulesList } from "@/components/sortable-modules-list"
 import { getModules, type Module } from "@/app/actions/modules"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface ModulesSectionProps {
   companyId: string
@@ -13,6 +14,7 @@ interface ModulesSectionProps {
 export function ModulesSection({ companyId, initialModules }: ModulesSectionProps) {
   const [modules, setModules] = useState<Module[]>(initialModules)
   const [isLoading, setIsLoading] = useState(false)
+  const [filter, setFilter] = useState<'all' | 'module' | 'exam'>('all')
 
   const refetchModules = async () => {
     setIsLoading(true)
@@ -26,25 +28,51 @@ export function ModulesSection({ companyId, initialModules }: ModulesSectionProp
     }
   }
 
+  const filteredModules = modules.filter((m) => {
+    if (filter === 'all') return true
+    return m.type === filter
+  })
+
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight text-white">Modules</h2>
-        <AddModuleDialog companyId={companyId} onModuleCreated={refetchModules} />
+        <h2 className="text-3xl font-bold tracking-tight text-foreground">
+          {filter === 'all' ? 'All Quizzes and Exams' : filter === 'exam' ? 'Exams' : 'Quizzes'}
+        </h2>
+        <div className="flex items-center gap-3">
+          <div className="w-40">
+            <Select value={filter} onValueChange={(v) => setFilter(v as any)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="module">Quiz</SelectItem>
+                <SelectItem value="exam">Exam</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <AddModuleDialog companyId={companyId} onModuleCreated={refetchModules} />
+        </div>
       </div>
       
       {isLoading ? (
-        <div className="rounded-xl border border-gray-200/10 bg-[#141414] p-12 text-center">
-          <p className="text-gray-400">Loading modules...</p>
+        <div className="rounded-xl border border-border bg-card p-12 text-center">
+          <p className="text-gray-400">Loading quizzes...</p>
         </div>
       ) : modules.length === 0 ? (
-        <div className="rounded-xl border border-gray-200/10 bg-[#141414] p-12 text-center">
+        <div className="rounded-xl border border-border bg-card p-12 text-center">
           <p className="text-gray-400">
-            No modules yet. Click "Add Module" to create your first quiz module.
+            No quizzes yet. Click "Add Module" to create your first quiz.
           </p>
         </div>
       ) : (
-        <SortableModulesList modules={modules} companyId={companyId} onModuleDeleted={refetchModules} />
+        <SortableModulesList
+          key={filter}
+          modules={filteredModules}
+          companyId={companyId}
+          onModuleDeleted={refetchModules}
+        />
       )}
     </div>
   )

@@ -103,23 +103,23 @@ export function ImageUploadDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] bg-[#141414] border-gray-200/10">
+      <DialogContent className="sm:max-w-[500px] bg-card border-border">
         <DialogHeader>
-          <DialogTitle className="text-white">Change Exercise Image</DialogTitle>
-          <DialogDescription className="text-gray-400">
+          <DialogTitle className="text-foreground">Change Exercise Image</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
             Upload an image from your device or enter an image URL.
           </DialogDescription>
         </DialogHeader>
         
         <Tabs defaultValue="upload" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-[#1a1a1a] border-gray-200/10">
-            <TabsTrigger value="upload" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white text-gray-400">Upload File</TabsTrigger>
-            <TabsTrigger value="url" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white text-gray-400">Image URL</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 bg-muted border-border">
+            <TabsTrigger value="upload" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white text-foreground">Upload File</TabsTrigger>
+            <TabsTrigger value="url" className="data-[state=active]:bg-emerald-600 data-[state=active]:text-white text-foreground">Image URL</TabsTrigger>
           </TabsList>
           
           <TabsContent value="upload" className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="file-upload" className="text-gray-300">Choose Image File</Label>
+              <Label htmlFor="file-upload" className="text-foreground">Choose Image File</Label>
               <div className="flex items-center gap-2">
                 <Input
                   ref={fileInputRef}
@@ -133,13 +133,13 @@ export function ImageUploadDialog({
                   variant="outline"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isLoading}
-                  className="w-full bg-black border-gray-200/10 text-gray-300 hover:text-white hover:bg-gray-800 hover:border-emerald-500"
+                  className="w-full bg-muted border-border text-foreground hover:text-foreground hover:bg-accent hover:border-emerald-500"
                 >
                   <Upload className="mr-2 h-4 w-4" />
                   {isLoading ? "Processing..." : "Choose File"}
                 </Button>
               </div>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Supported formats: JPG, PNG, GIF, WebP (max 5MB)
               </p>
             </div>
@@ -148,7 +148,7 @@ export function ImageUploadDialog({
           <TabsContent value="url" className="space-y-4">
             <form onSubmit={handleUrlSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="image-url" className="text-gray-300">Image URL</Label>
+              <Label htmlFor="image-url" className="text-foreground">Image URL</Label>
                 <Input
                   id="image-url"
                   type="url"
@@ -156,7 +156,7 @@ export function ImageUploadDialog({
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   disabled={isLoading}
-                  className="bg-[#1a1a1a] border-gray-200/10 text-white placeholder:text-gray-500"
+                  className="bg-muted border-border text-foreground placeholder:text-muted-foreground"
                 />
               </div>
               <div className="flex gap-2">
@@ -170,14 +170,14 @@ export function ImageUploadDialog({
         </Tabs>
 
         {currentImageUrl && (
-          <div className="pt-4 border-t border-gray-200/10">
+          <div className="pt-4 border-t border-border">
             <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-400">Current image:</span>
+              <span className="text-sm text-muted-foreground">Current image:</span>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleRemoveImage}
-                className="bg-black text-red-400 hover:text-red-400 border-gray-200/10 hover:bg-red-500/10"
+                className="bg-muted text-red-500 hover:text-red-500 border-border hover:bg-red-500/10"
               >
                 <X className="mr-2 h-4 w-4" />
                 Remove Image

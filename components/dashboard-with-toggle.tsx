@@ -4,9 +4,10 @@ import { useState } from "react"
 import { Camera } from "lucide-react"
 import { Switch } from "@/components/ui/switch"
 import { ModulesSection } from "@/components/modules-section"
-import { MemberModulesViewClient } from "@/components/member-modules-view-client"
+import { MemberModulesViewWithFilter } from "@/components/member-modules-view-with-filter"
 import { ResultsSidebar } from "@/components/results-sidebar"
-import { CompanyLogoUpload } from "@/components/company-logo-upload"
+// import { CompanyLogoUpload } from "@/components/company-logo-upload"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { type Module } from "@/app/actions/modules"
 import { type Company } from "@/app/actions/company"
 
@@ -18,6 +19,7 @@ interface DashboardWithToggleProps {
   companyData: Company | null
   recentResults: any[]
   modules: Module[]
+  memberModules: Module[]
   userResults: { [moduleId: string]: any }
 }
 
@@ -29,50 +31,42 @@ export function DashboardWithToggle({
   companyData,
   recentResults,
   modules,
+  memberModules,
   userResults
 }: DashboardWithToggleProps) {
   const [showMemberView, setShowMemberView] = useState(false)
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a]">
-      <header className="border-b border-gray-200/10 bg-[#0f0f0f]">
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border bg-background">
         <div className="mx-auto px-8 h-16 flex items-center justify-between">
-          {isAdmin && !showMemberView ? (
-            <CompanyLogoUpload 
-              companyId={companyId}
-              currentLogoUrl={companyData?.logo_url || null}
-              companyName={companyName}
+          {/* Company logo (upload disabled) */}
+          {/* <CompanyLogoUpload companyId={companyId} currentLogoUrl={companyData?.logo_url || null} companyName={companyName} /> */}
+          <div className="flex items-center gap-3">
+            <img
+              src="/logo.svg"
+              alt={`${companyName} logo`}
+              className="themed-logo w-8 h-8 rounded-lg object-cover"
             />
-          ) : (
-            <div className="flex items-center gap-3">
-              {companyData?.logo_url ? (
-                <img
-                  src={companyData.logo_url}
-                  alt={`${companyName} logo`}
-                  className="w-8 h-8 rounded-lg object-cover"
-                />
-              ) : (
-                <div className="w-8 h-8 bg-gray-600 rounded-lg flex items-center justify-center">
-                  <Camera className="w-4 h-4 text-gray-400" />
-                </div>
-              )}
-              <h1 className="text-xl font-semibold text-white">{companyName}</h1>
-            </div>
-          )}
+            <h1 className="text-xl font-semibold text-foreground">{companyName}</h1>
+          </div>
           
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             {isAdmin && (
               <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-400">Member View</span>
+                <span className="text-sm text-foreground">Member View</span>
                 <Switch
                   checked={showMemberView}
                   onCheckedChange={setShowMemberView}
                 />
               </div>
             )}
-            <span className="text-sm text-gray-400">
-              {isAdmin && showMemberView ? "Member" : isAdmin ? "Admin" : "Member"}
-            </span>
+            {isAdmin && (
+              <span className="text-sm text-foreground">
+                {showMemberView ? "" : "Admin"}
+              </span>
+            )}
           </div>
         </div>
       </header>
@@ -84,16 +78,16 @@ export function DashboardWithToggle({
               <ModulesSection companyId={companyId} initialModules={modules} />
             </div>
           </main>
-          <aside className="w-[400px] border-l border-gray-200/10 bg-[#0f0f0f] p-6">
+          <aside className="w-[400px] border-l border-border bg-background p-6">
             <ResultsSidebar results={recentResults} modules={modules} />
           </aside>
         </div>
       ) : (
         <main className="container mx-auto p-8">
-          <MemberModulesViewClient 
+          <MemberModulesViewWithFilter 
             companyId={companyId} 
             userId={userId} 
-            modules={modules}
+            modules={memberModules}
             userResults={userResults}
           />
         </main>

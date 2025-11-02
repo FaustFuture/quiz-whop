@@ -76,7 +76,7 @@ export default function DiscoverPage() {
 						</div>
 						<a
 							href="https://whop.com/cryptokings/?a=your_app_id"
-							className="mt-auto block w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-center text-sm"
+                            className="mt-auto block w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg text-center text-sm"
 						>
 							Visit CryptoKings
 						</a>
@@ -101,7 +101,7 @@ export default function DiscoverPage() {
 						</div>
 						<a
 							href="https://whop.com/signalpro/?app=your_app_id"
-							className="mt-auto block w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-center text-sm"
+                            className="mt-auto block w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg text-center text-sm"
 						>
 							Visit SignalPro
 						</a>

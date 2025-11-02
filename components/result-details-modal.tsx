@@ -12,9 +12,10 @@ interface ResultDetailsModalProps {
   resultId: string
   open: boolean
   onClose: () => void
+  moduleType?: 'module' | 'exam'
 }
 
-export function ResultDetailsModal({ resultId, open, onClose }: ResultDetailsModalProps) {
+export function ResultDetailsModal({ resultId, open, onClose, moduleType }: ResultDetailsModalProps) {
   const [data, setData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -43,18 +44,18 @@ export function ResultDetailsModal({ resultId, open, onClose }: ResultDetailsMod
       />
 
       {/* Modal Content */}
-      <Card className="relative z-10 w-full max-w-3xl max-h-[90vh] mx-4 shadow-lg bg-[#141414] border-gray-200/10">
+      <Card className="relative z-10 w-full max-w-3xl max-h-[90vh] mx-4 shadow-lg bg-card border-border overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200/10">
+        <div className="flex items-center justify-between p-6 border-b border-border">
           <div className="flex items-center gap-2">
             <Trophy className="h-6 w-6 text-emerald-500" />
-            <h2 className="text-2xl font-semibold text-white">Exam Results</h2>
+            <h2 className="text-2xl font-semibold text-foreground">{moduleType === 'exam' ? 'Exam Results' : 'Quiz Results'}</h2>
           </div>
           <Button
             variant="ghost"
             size="icon"
             onClick={onClose}
-            className="rounded-full text-gray-400 hover:text-white hover:bg-gray-800"
+            className="rounded-full text-muted-foreground hover:text-foreground hover:bg-accent"
           >
             <X className="h-4 w-4" />
             <span className="sr-only">Close</span>
@@ -63,7 +64,7 @@ export function ResultDetailsModal({ resultId, open, onClose }: ResultDetailsMod
 
         {isLoading ? (
           <div className="flex items-center justify-center p-12">
-            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : data ? (
           <>
@@ -87,26 +88,26 @@ export function ResultDetailsModal({ resultId, open, onClose }: ResultDetailsMod
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4 p-4 bg-[#1a1a1a] rounded-lg border border-gray-200/10">
+                  <div className="grid grid-cols-3 gap-4 p-4 bg-muted rounded-lg border border-border">
                     <div className="text-center">
                       <p className="text-2xl font-bold text-emerald-500">
                         {data.result.correct_answers}
                       </p>
-                      <p className="text-xs text-gray-500">Correct</p>
+                      <p className="text-xs text-muted-foreground">Correct</p>
                     </div>
                     <div className="text-center">
                       <p className="text-2xl font-bold text-red-500">
                         {data.result.total_questions - data.result.correct_answers}
                       </p>
-                      <p className="text-xs text-gray-500">Incorrect</p>
+                      <p className="text-xs text-muted-foreground">Incorrect</p>
                     </div>
                     <div className="text-center">
-                      <p className="text-2xl font-bold text-white">{data.result.total_questions}</p>
-                      <p className="text-xs text-gray-500">Total</p>
+                      <p className="text-2xl font-bold text-foreground">{data.result.total_questions}</p>
+                      <p className="text-xs text-muted-foreground">Total</p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 text-sm text-gray-400">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Clock className="h-4 w-4" />
                     <span>
                       Submitted {new Date(data.result.submitted_at).toLocaleString()}
@@ -114,13 +115,13 @@ export function ResultDetailsModal({ resultId, open, onClose }: ResultDetailsMod
                   </div>
                 </div>
 
-                <Separator className="bg-gray-800" />
+                <Separator className="bg-border" />
 
                 {/* Answers Section */}
                 <div>
-                  <h3 className="font-semibold text-lg text-white mb-4">Question Responses</h3>
+                  <h3 className="font-semibold text-lg text-foreground mb-4">Question Responses</h3>
                   
-                  <div className="max-h-[40vh] overflow-y-auto">
+                  <div className="max-h-[30vh] overflow-y-auto overflow-x-hidden break-words">
                     <div className="space-y-4 pr-4">
                   {data.answers.map((answer: any, index: number) => (
                     <div
@@ -144,17 +145,17 @@ export function ResultDetailsModal({ resultId, open, onClose }: ResultDetailsMod
                         {/* Question Details */}
                         <div className="flex-1 space-y-2">
                           <div className="flex items-start justify-between gap-2">
-                            <h4 className="font-medium text-gray-200">
+                            <h4 className="font-medium text-foreground">
                               Question {index + 1}: {answer.exercises?.question}
                             </h4>
-                            <span className="text-xs text-gray-500 whitespace-nowrap">
+                            <span className="text-xs text-muted-foreground whitespace-nowrap">
                               {answer.time_spent_seconds}s
                             </span>
                           </div>
 
                           {/* User's Answer */}
                           <div className="space-y-1">
-                            <p className="text-sm text-gray-400">User's Answer:</p>
+                            <p className="text-sm text-muted-foreground">User's Answer:</p>
                             <div
                               className={`p-2 rounded border ${
                                 answer.is_correct
@@ -162,11 +163,11 @@ export function ResultDetailsModal({ resultId, open, onClose }: ResultDetailsMod
                                   : "bg-red-500/5 border-red-500/30"
                               }`}
                             >
-                              <p className="text-sm font-medium text-gray-200">
+                              <p className="text-sm font-medium text-foreground">
                                 {answer.alternatives?.content}
                               </p>
                               {answer.alternatives?.explanation && (
-                                <p className="text-xs text-gray-500 mt-1">
+                                <p className="text-xs text-muted-foreground mt-1">
                                   {answer.alternatives.explanation}
                                 </p>
                               )}
@@ -176,7 +177,7 @@ export function ResultDetailsModal({ resultId, open, onClose }: ResultDetailsMod
                           {/* Show correct answer if user was wrong */}
                           {!answer.is_correct && answer.alternatives?.is_correct === false && (
                             <div className="space-y-1 mt-2">
-                              <p className="text-sm text-gray-400">
+                              <p className="text-sm text-muted-foreground">
                                 ℹ️ This answer was incorrect
                               </p>
                             </div>
@@ -192,7 +193,7 @@ export function ResultDetailsModal({ resultId, open, onClose }: ResultDetailsMod
             </div>
           </>
         ) : (
-          <div className="p-6 text-center text-gray-400">
+          <div className="p-6 text-center text-muted-foreground">
             <p>No data available</p>
           </div>
         )}

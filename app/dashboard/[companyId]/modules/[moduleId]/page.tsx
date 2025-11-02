@@ -9,8 +9,12 @@ import { notFound } from "next/navigation"
 import { ArrowLeft, Camera } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { getCompany } from "@/app/actions/company"
 import { AddExerciseDialog } from "@/components/add-exercise-dialog"
 import { ExerciseNavigation } from "@/components/exercise-navigation"
+import { RetakeStatsDialog } from "@/components/retake-stats-dialog"
+import { ExamGrantRetake } from "@/components/exam-grant-retake"
+import { ExamLockToggle } from "@/components/exam-lock-toggle"
 
 interface ModulePageProps {
   params: Promise<{ companyId: string; moduleId: string }>
@@ -23,7 +27,11 @@ export default async function ModulePage({ params }: ModulePageProps) {
   const { userId } = await whopsdk.verifyUserToken(await headers())
 
   // Fetch the company data, module, and exercises
+<<<<<<< HEAD
   const [company, modules, exercises, companyData] = await Promise.all([
+=======
+  const [company, modules, exercises, companyRecord] = await Promise.all([
+>>>>>>> 7ce2e013f3ccfd725e89e71c011f71a7dcae19ec
     whopsdk.companies.retrieve(companyId),
     getModules(companyId),
     getExercises(moduleId),
@@ -43,6 +51,7 @@ export default async function ModulePage({ params }: ModulePageProps) {
   const companyName = (company as any).name || (company as any).title || companyId
 
   return (
+<<<<<<< HEAD
     <div className="min-h-screen bg-[#0a0a0a]">
       {/* Custom Header */}
       <header className="border-b border-gray-200/10 bg-[#0f0f0f]">
@@ -63,41 +72,55 @@ export default async function ModulePage({ params }: ModulePageProps) {
           </div>
         </div>
       </header>
+=======
+    <div className="min-h-screen bg-background">
+      <DashboardNavbar companyName={companyName} logoUrl={companyRecord?.logo_url || null} />
+>>>>>>> 7ce2e013f3ccfd725e89e71c011f71a7dcae19ec
 
       <main className="container mx-auto p-8">
         {/* Header */}
         <div className="mb-8">
           <Link href={`/dashboard/${companyId}`}>
-            <Button variant="ghost" className="mb-6 gap-2 text-gray-400 hover:text-white hover:bg-gray-800">
+            <Button variant="ghost" className="mb-6 gap-2 text-muted-foreground hover:text-foreground hover:bg-accent">
               <ArrowLeft className="h-4 w-4" />
-              Back to Modules
+              Back to Dashboard
             </Button>
           </Link>
           
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="text-4xl font-bold tracking-tight text-white">{module.title}</h1>
+              <h1 className="text-4xl font-bold tracking-tight text-foreground">{module.title}</h1>
               {module.description && (
-                <p className="mt-2 text-lg text-gray-400">
+                <p className="mt-2 text-lg text-muted-foreground">
                   {module.description}
                 </p>
               )}
             </div>
-            <AddExerciseDialog moduleId={moduleId} />
+            <div className="flex items-center gap-2">
+              <ExamLockToggle 
+                moduleId={moduleId} 
+                companyId={companyId} 
+                isUnlocked={module.is_unlocked} 
+                moduleType={module.type} 
+              />
+              <ExamGrantRetake moduleId={moduleId} companyId={companyId} moduleType={module.type} />
+              <RetakeStatsDialog moduleId={moduleId} moduleTitle={module.title} moduleType={module.type} />
+              <AddExerciseDialog moduleId={moduleId} />
+            </div>
           </div>
         </div>
 
         {/* Exercises Section */}
         <div className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-bold tracking-tight text-white">
+            <h2 className="text-2xl font-bold tracking-tight text-foreground">
               Exercises ({exercises.length})
             </h2>
           </div>
           
           {exercises.length === 0 ? (
-            <div className="rounded-xl border border-gray-200/10 bg-[#141414] p-12 text-center">
-              <p className="text-gray-400">
+            <div className="rounded-xl border border-border bg-card p-12 text-center">
+              <p className="text-muted-foreground">
                 No exercises yet. Click "Add Exercise" to create your first exercise.
               </p>
             </div>
