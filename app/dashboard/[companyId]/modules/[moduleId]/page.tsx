@@ -4,8 +4,9 @@ import { DashboardNavbar } from "@/components/dashboard-navbar"
 import { getModules } from "@/app/actions/modules"
 import { getExercises } from "@/app/actions/exercises"
 import { getAlternatives } from "@/app/actions/alternatives"
+import { getCompany } from "@/app/actions/company"
 import { notFound } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, Camera } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { AddExerciseDialog } from "@/components/add-exercise-dialog"
@@ -22,10 +23,11 @@ export default async function ModulePage({ params }: ModulePageProps) {
   const { userId } = await whopsdk.verifyUserToken(await headers())
 
   // Fetch the company data, module, and exercises
-  const [company, modules, exercises] = await Promise.all([
+  const [company, modules, exercises, companyData] = await Promise.all([
     whopsdk.companies.retrieve(companyId),
     getModules(companyId),
     getExercises(moduleId),
+    getCompany(companyId),
   ])
 
   const module = modules.find((m) => m.id === moduleId)
@@ -46,9 +48,17 @@ export default async function ModulePage({ params }: ModulePageProps) {
       <header className="border-b border-gray-200/10 bg-[#0f0f0f]">
         <div className="container mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">Q</span>
-            </div>
+            {companyData?.logo_url ? (
+              <img
+                src={companyData.logo_url}
+                alt={`${companyName} logo`}
+                className="w-8 h-8 rounded-lg object-cover"
+              />
+            ) : (
+              <div className="w-8 h-8 bg-gray-600 rounded-lg flex items-center justify-center">
+                <Camera className="w-4 h-4 text-gray-400" />
+              </div>
+            )}
             <h1 className="text-xl font-semibold text-white">{companyName}</h1>
           </div>
         </div>
