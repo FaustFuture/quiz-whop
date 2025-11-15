@@ -1,46 +1,59 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { AddModuleDialog } from "@/components/add-module-dialog"
-import { SortableModulesList } from "@/components/sortable-modules-list"
-import { getModules, type Module } from "@/app/actions/modules"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useState, useEffect } from "react";
+import { AddModuleDialog } from "@/components/add-module-dialog";
+import { SortableModulesList } from "@/components/sortable-modules-list";
+import { getModules, type Module } from "@/app/actions/modules";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ModulesSectionProps {
-  companyId: string
-  initialModules: Module[]
+  companyId: string;
+  initialModules: Module[];
 }
 
-export function ModulesSection({ companyId, initialModules }: ModulesSectionProps) {
-  const [modules, setModules] = useState<Module[]>(initialModules)
-  const [isLoading, setIsLoading] = useState(false)
-  const [filter, setFilter] = useState<'all' | 'module' | 'exam'>('all')
+export function ModulesSection({
+  companyId,
+  initialModules,
+}: ModulesSectionProps) {
+  const [modules, setModules] = useState<Module[]>(initialModules);
+  const [isLoading, setIsLoading] = useState(false);
+  const [filter, setFilter] = useState<"all" | "module" | "exam">("all");
 
   const refetchModules = async () => {
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      const updatedModules = await getModules(companyId)
-      setModules(updatedModules)
+      const updatedModules = await getModules(companyId);
+      setModules(updatedModules);
     } catch (error) {
-      console.error("Error refetching modules:", error)
+      console.error("Error refetching modules:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const filteredModules = modules.filter((m) => {
-    if (filter === 'all') return true
-    return m.type === filter
-  })
+    if (filter === "all") return true;
+    return m.type === filter;
+  });
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight text-foreground">
-          {filter === 'all' ? 'All Quizzes and Exams' : filter === 'exam' ? 'Exams' : 'Quizzes'}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+          {filter === "all"
+            ? "All Quizzes and Exams"
+            : filter === "exam"
+            ? "Exams"
+            : "Quizzes"}
         </h2>
-        <div className="flex items-center gap-3">
-          <div className="w-40">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <div className="w-full sm:w-40">
             <Select value={filter} onValueChange={(v) => setFilter(v as any)}>
               <SelectTrigger>
                 <SelectValue placeholder="Filter" />
@@ -52,10 +65,13 @@ export function ModulesSection({ companyId, initialModules }: ModulesSectionProp
               </SelectContent>
             </Select>
           </div>
-          <AddModuleDialog companyId={companyId} onModuleCreated={refetchModules} />
+          <AddModuleDialog
+            companyId={companyId}
+            onModuleCreated={refetchModules}
+          />
         </div>
       </div>
-      
+
       {isLoading ? (
         <div className="rounded-xl border border-border bg-card p-12 text-center">
           <p className="text-gray-400">Loading quizzes...</p>
@@ -75,5 +91,5 @@ export function ModulesSection({ companyId, initialModules }: ModulesSectionProp
         />
       )}
     </div>
-  )
+  );
 }

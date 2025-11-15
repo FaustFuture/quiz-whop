@@ -49,26 +49,26 @@ export default async function ModulePage({ params }: ModulePageProps) {
 		<div className="min-h-screen bg-background">
 			<DashboardNavbar companyName={companyName} logoUrl={companyRecord?.logo_url || null} />
 
-			<main className="container mx-auto p-8">
+			<main className="container mx-auto p-2 sm:p-4 lg:p-6 xl:p-8">
 				{/* Header */}
-				<div className="mb-8">
+				<div className="mb-4 sm:mb-6 lg:mb-8">
 					<Link href={`/dashboard/${companyId}`}>
-						<Button variant="ghost" className="mb-6 gap-2 text-muted-foreground hover:text-foreground hover:bg-accent">
-							<ArrowLeft className="h-4 w-4" />
+						<Button variant="ghost" className="mb-3 sm:mb-4 lg:mb-6 gap-2 text-muted-foreground hover:text-foreground hover:bg-accent text-xs sm:text-sm min-h-[44px]">
+							<ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4" />
 							Back to Dashboard
 						</Button>
 					</Link>
 
-					<div className="flex items-start justify-between gap-4">
-						<div>
-							<h1 className="text-4xl font-bold tracking-tight text-foreground">{module.title}</h1>
+					<div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4">
+						<div className="flex-1 min-w-0">
+							<h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-foreground break-words">{module.title}</h1>
 							{module.description && (
-								<p className="mt-2 text-lg text-muted-foreground">
+								<p className="mt-2 text-sm sm:text-base lg:text-lg text-muted-foreground break-words">
 									{module.description}
 								</p>
 							)}
 						</div>
-						<div className="flex items-center gap-2">
+						<div className="flex items-center gap-2 flex-wrap">
 							<ExamLockToggle
 								moduleId={moduleId}
 								companyId={companyId}
@@ -83,16 +83,16 @@ export default async function ModulePage({ params }: ModulePageProps) {
 				</div>
 
 				{/* Exercises Section */}
-				<div className="space-y-6">
+				<div className="space-y-4 sm:space-y-6">
 					<div className="flex items-center justify-between">
-						<h2 className="text-2xl font-bold tracking-tight text-foreground">
+						<h2 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground">
 							Exercises ({exercises.length})
 						</h2>
 					</div>
 
 					{exercises.length === 0 ? (
-						<div className="rounded-xl border border-border bg-card p-12 text-center">
-							<p className="text-muted-foreground">
+						<div className="rounded-xl border border-border bg-card p-6 sm:p-8 lg:p-12 text-center">
+							<p className="text-sm sm:text-base text-muted-foreground">
 								No exercises yet. Click "Add Exercise" to create your first exercise.
 							</p>
 						</div>
