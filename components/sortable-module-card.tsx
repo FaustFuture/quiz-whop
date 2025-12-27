@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { Trash2, MoreVertical, GripVertical, AlertTriangle } from "lucide-react"
+import { Trash2, Pencil, GripVertical, AlertTriangle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import {
@@ -16,17 +16,20 @@ import {
 import { type Module } from "@/app/actions/modules"
 import { deleteModule } from "@/app/actions/modules"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { EditModuleDialog } from "@/components/edit-module-dialog"
 
 interface SortableModuleCardProps {
   module: Module
   companyId: string
   isActive?: boolean
   onModuleDeleted?: () => void
+  onModuleUpdated?: () => void
 }
 
-export function SortableModuleCard({ module, companyId, isActive = false, onModuleDeleted }: SortableModuleCardProps) {
+export function SortableModuleCard({ module, companyId, isActive = false, onModuleDeleted, onModuleUpdated }: SortableModuleCardProps) {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+  const [isEditOpen, setIsEditOpen] = useState(false)
   const router = useRouter()
 
   const {
@@ -126,6 +129,17 @@ export function SortableModuleCard({ module, companyId, isActive = false, onModu
               <span className="sr-only">Drag to reorder</span>
             </Button>
             
+            {/* Edit Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+              onClick={(e) => { e.stopPropagation(); setIsEditOpen(true) }}
+            >
+              <Pencil className="h-4 w-4" />
+              <span className="sr-only">Edit module</span>
+            </Button>
+            
             {/* Delete Button */}
             <Button
               variant="ghost"
@@ -177,6 +191,13 @@ export function SortableModuleCard({ module, companyId, isActive = false, onModu
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <EditModuleDialog
+        module={module}
+        companyId={companyId}
+        open={isEditOpen}
+        onOpenChange={setIsEditOpen}
+        onModuleUpdated={onModuleUpdated || onModuleDeleted}
+      />
     </Card>
   )
 }

@@ -26,9 +26,10 @@ interface SortableModulesListProps {
   modules: Module[]
   companyId: string
   onModuleDeleted?: () => void
+  onModuleUpdated?: () => void
 }
 
-export function SortableModulesList({ modules, companyId, onModuleDeleted }: SortableModulesListProps) {
+export function SortableModulesList({ modules, companyId, onModuleDeleted, onModuleUpdated }: SortableModulesListProps) {
   const [items, setItems] = useState(modules)
   const [activeId, setActiveId] = useState<string | null>(null)
   const router = useRouter()
@@ -100,6 +101,7 @@ export function SortableModulesList({ modules, companyId, onModuleDeleted }: Sor
               companyId={companyId}
               isActive={activeId === module.id}
               onModuleDeleted={onModuleDeleted}
+              onModuleUpdated={onModuleUpdated || onModuleDeleted}
             />
           ))}
         </div>

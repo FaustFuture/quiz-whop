@@ -88,6 +88,7 @@ export function ModulesSection({
           modules={filteredModules}
           companyId={companyId}
           onModuleDeleted={refetchModules}
+          onModuleUpdated={refetchModules}
         />
       )}
     </div>

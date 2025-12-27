@@ -28,9 +28,34 @@ export async function createModule(companyId: string, title: string, description
 				.order("order", { ascending: false })
 				.limit(1)
 
-			const nextOrder = existingModules && existingModules.length > 0
+			let nextOrder = existingModules && existingModules.length > 0
 				? existingModules[0].order + 1
 				: 0
+
+			// Check if this order exists globally (handles global unique constraint)
+			// This is necessary because the database may have a global unique constraint on order
+			const { data: globalCheck } = await supabase
+				.from("modules")
+				.select("order")
+				.eq("order", nextOrder)
+				.limit(1)
+
+			if (globalCheck && globalCheck.length > 0) {
+				// Order exists globally, find the next available one globally
+				const { data: allOrders } = await supabase
+					.from("modules")
+					.select("order")
+					.order("order", { ascending: false })
+					.limit(1)
+
+				if (allOrders && allOrders.length > 0) {
+					// Use the global max + 1 to ensure uniqueness
+					nextOrder = allOrders[0].order + 1
+				} else {
+					// Fallback: use a timestamp-based order to ensure uniqueness
+					nextOrder = Math.floor(Date.now() / 1000)
+				}
+			}
 
 			const { data, error } = await supabase
 				.from("modules")
@@ -46,7 +71,7 @@ export async function createModule(companyId: string, title: string, description
 				.single()
 
 			if (error) {
-				// Check if it's a unique constraint violation (race condition)
+				// Check if it's a unique constraint violation (race condition or global constraint)
 				if (error.code === '23505' && retryCount < maxRetries - 1) {
 					// Wait with exponential backoff before retrying
 					const delay = Math.min(100 * Math.pow(2, retryCount), 1000)
@@ -161,6 +186,46 @@ export async function updateModuleOrder(moduleId: string, newOrder: number, comp
 	} catch (error) {
 		console.error("Error updating module order:", error)
 		return { success: false, error: "Failed to update module order" }
+	}
+}
+
+export async function updateModule(moduleId: string, companyId: string, title: string, description: string) {
+	try {
+		// First verify the module belongs to this company
+		const { data: existingModule, error: fetchError } = await supabase
+			.from("modules")
+			.select("id, company_id")
+			.eq("id", moduleId)
+			.eq("company_id", companyId)
+			.single()
+
+		if (fetchError || !existingModule) {
+			console.error("Error verifying module ownership:", fetchError)
+			return { success: false, error: "Module not found or access denied" }
+		}
+
+		// Update the module
+		const { data, error } = await supabase
+			.from("modules")
+			.update({
+				title,
+				description: description || null,
+			})
+			.eq("id", moduleId)
+			.eq("company_id", companyId)
+			.select()
+			.single()
+
+		if (error) {
+			console.error("Error updating module:", error)
+			return { success: false, error: error.message }
+		}
+
+		revalidatePath(`/dashboard/${companyId}`, "page")
+		return { success: true, data }
+	} catch (error) {
+		console.error("Error updating module:", error)
+		return { success: false, error: "Failed to update module" }
 	}
 }
 
