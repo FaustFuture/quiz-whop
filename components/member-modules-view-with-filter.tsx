@@ -16,9 +16,10 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { Play, RotateCcw, Trophy } from "lucide-react";
+import { Lock, Play, RotateCcw, Trophy } from "lucide-react";
 import Link from "next/link";
 import { type Module } from "@/app/actions/modules";
+import { getUserRetakeStats } from "@/app/actions/results";
 
 interface MemberModulesViewWithFilterProps {
 	companyId: string;
@@ -138,8 +139,46 @@ function ModuleExamCard({
 	result,
 	canRetakeExam,
 }: ModuleExamCardProps) {
+	// Track if user has actually taken this exam (fetched from DB)
+	const [hasAttempted, setHasAttempted] = useState(hasResult);
+	const [attemptCount, setAttemptCount] = useState(0);
+	const [latestResult, setLatestResult] = useState<any>(result);
+
+	// Fetch actual attempt data for exams to ensure we have accurate state
+	useEffect(() => {
+		if (module.type === "exam") {
+			getUserRetakeStats(userId, module.id).then((stats) => {
+				if (stats.success && stats.data) {
+					const totalAttempts = stats.data.totalAttempts || 0;
+					setAttemptCount(totalAttempts);
+					if (totalAttempts > 0) {
+						setHasAttempted(true);
+						// Use the latest attempt data if we don't have result from props
+						if (!result && stats.data.attempts && stats.data.attempts.length > 0) {
+							setLatestResult(stats.data.attempts[0]);
+						}
+					}
+				}
+			});
+		}
+	}, [module.id, module.type, userId, result]);
+
+	// Determine if card should be disabled/grayed out
+	// Exam is disabled if: locked OR (has attempted AND no retake grant)
+	const isExamLocked = module.type === "exam" && !module.is_unlocked;
+	const isExamCompleted = module.type === "exam" && hasAttempted && !canRetakeExam;
+	const isDisabled = isExamLocked || isExamCompleted;
+
+	// Use latestResult for display if available
+	const displayResult = latestResult || result;
+	const showResult = hasAttempted && displayResult;
+
 	return (
-		<Card className="relative group hover:shadow-xl border-border bg-card hover:bg-muted hover:border-emerald-500/50 flex flex-col min-h-64">
+		<Card className={`relative group flex flex-col min-h-64 border-border bg-card ${
+			isDisabled
+				? "opacity-60 cursor-not-allowed"
+				: "hover:shadow-xl hover:bg-muted hover:border-emerald-500/50"
+		}`}>
 			<CardHeader className="pb-4">
 				<div className="flex items-start justify-between gap-2">
 					<div className="flex-1">
@@ -175,7 +214,25 @@ function ModuleExamCard({
 				</div>
 			</CardHeader>
 			<CardContent className="flex-1 flex flex-col">
-				{hasResult ? (
+				{/* Case 1: Exam is locked - show locked message */}
+				{isExamLocked ? (
+					<div className="flex flex-col flex-1">
+						<div className="flex items-center gap-2 text-sm text-muted-foreground py-2 mb-4">
+							<span>
+								Created {new Date(module.created_at).toLocaleDateString()}
+							</span>
+						</div>
+						<div className="mt-auto">
+							<Button className="w-full gap-2 min-h-[44px] text-xs sm:text-sm" variant="secondary" disabled>
+								<Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+								Exam Locked
+							</Button>
+							<p className="text-xs text-muted-foreground text-center mt-2">
+								This exam is currently locked by the administrator.
+							</p>
+						</div>
+					</div>
+				) : showResult ? (
 					<div className="space-y-6 flex flex-col flex-1">
 						{/* Show previous result */}
 						<div className="rounded-xl bg-muted border border-border p-5 space-y-3">
@@ -187,17 +244,17 @@ function ModuleExamCard({
 							</div>
 							<div className="flex items-baseline gap-2">
 								<span
-									className={`text-4xl font-bold ${result.score >= 70 ? "text-emerald-400" : "text-red-400"
+									className={`text-4xl font-bold ${displayResult.score >= 70 ? "text-emerald-400" : "text-red-400"
 										}`}
 								>
-									{Math.round(result.score)}%
+									{Math.round(displayResult.score)}%
 								</span>
 								<span className="text-sm text-muted-foreground">
-									({result.correct_answers}/{result.total_questions} correct)
+									({displayResult.correct_answers}/{displayResult.total_questions} correct)
 								</span>
 							</div>
 							<p className="text-xs text-muted-foreground">
-								Taken {new Date(result.submitted_at).toLocaleDateString()}
+								Taken {new Date(displayResult.submitted_at).toLocaleDateString()}
 							</p>
 						</div>
 
@@ -233,11 +290,45 @@ function ModuleExamCard({
 									</Button>
 								</Link>
 							) : (
-								<Button className="w-full gap-2 min-h-[44px] text-xs sm:text-sm" variant="secondary" disabled>
-									<RotateCcw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-									Retake Exam
-								</Button>
+								<div className="flex flex-col">
+									<Button className="w-full gap-2 min-h-[44px] text-xs sm:text-sm" variant="secondary" disabled>
+										<Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+										Completed
+									</Button>
+									<p className="text-xs text-muted-foreground text-center mt-1">
+										No retake granted
+									</p>
+								</div>
 							)}
+						</div>
+					</div>
+				) : isExamCompleted ? (
+					// Exam completed but no result details available - show completed state
+					<div className="flex flex-col flex-1">
+						<div className="flex items-center gap-2 text-sm text-muted-foreground py-2 mb-4">
+							<span>
+								Created {new Date(module.created_at).toLocaleDateString()}
+							</span>
+						</div>
+						<div className="mt-auto">
+							<Link
+								href={`/dashboard/${companyId}/modules/${module.id}/exam?view=results`}
+							>
+								<Button
+									className="w-full gap-2 bg-muted border-border text-muted-foreground hover:text-foreground hover:bg-accent hover:border-emerald-500 min-h-[44px] text-xs sm:text-sm mb-2"
+									variant="outline"
+								>
+									<Trophy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+									View Results
+								</Button>
+							</Link>
+							<Button className="w-full gap-2 min-h-[44px] text-xs sm:text-sm" variant="secondary" disabled>
+								<Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+								Completed
+							</Button>
+							<p className="text-xs text-muted-foreground text-center mt-1">
+								No retake granted
+							</p>
 						</div>
 					</div>
 				) : (

@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"c:\\\\Users\\\\Zbook\\\\OneDrive\\\\Desktop\\\\customer-apps\\\\quiz\" diff HEAD --name-only)"
+    ]
+  }
+}

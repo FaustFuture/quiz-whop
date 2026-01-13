@@ -1,7 +1,7 @@
 "use server"
 
 import { supabase } from "@/lib/supabase"
-import { upsertUsersFromWhop } from "@/app/actions/users"
+import { upsertUsersFromWhop, markRetakeAsUsed } from "@/app/actions/users"
 import { revalidatePath } from "next/cache"
 
 export type Result = {
@@ -88,6 +88,10 @@ export async function saveExamResult(
       await supabase.from("results").delete().eq("id", result.id)
       return { success: false, error: answersError.message }
     }
+
+    // Mark any retake grant as used (if one exists)
+    // This prevents re-using the same retake grant
+    await markRetakeAsUsed(moduleId, userId)
 
     revalidatePath(`/dashboard/[companyId]`, "page")
     return { success: true, data: result }

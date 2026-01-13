@@ -190,6 +190,10 @@ export async function searchCachedUsers(query: string, limit: number = 10) {
   }
 }
 
+// Check if user has been granted retake access for an exam
+// NOTE: This is only relevant for RETAKES, not first attempts
+// - First attempt: user can take exam without any grant (checked via hasCompletedExam in UI)
+// - Retake: requires admin to grant access (this function checks that)
 export async function hasExamRetakeAccess(moduleId: string, userId: string) {
   try {
     const { data, error } = await supabase
@@ -203,10 +207,10 @@ export async function hasExamRetakeAccess(moduleId: string, userId: string) {
       return { success: false, error: error.message }
     }
     
-    // If no retake record found, user doesn't have access
+    // If no retake record found, user doesn't have retake access (but may still take first attempt)
     if (!data) return { success: true, data: false }
     
-    // If retake exists and hasn't been used, user has access
+    // If retake grant exists and hasn't been used, user has retake access
     return { success: true, data: !data.used_at }
   } catch (e) {
     return { success: false, error: "Failed to check retake access" }
@@ -260,6 +264,27 @@ export async function getUserRetakeGrants(userId: string) {
     return { success: true, data: moduleIds }
   } catch (e) {
     return { success: false, error: "Failed to read retake grants", data: [] }
+  }
+}
+
+// Mark a retake grant as used when user takes the exam
+export async function markRetakeAsUsed(moduleId: string, userId: string) {
+  try {
+    const { error } = await supabase
+      .from("exam_retakes")
+      .update({ used_at: new Date().toISOString() })
+      .eq("module_id", moduleId)
+      .eq("user_id", userId)
+      .is("used_at", null) // Only update if not already used
+
+    if (error) {
+      console.error("Error marking retake as used:", error)
+      return { success: false, error: error.message }
+    }
+    return { success: true }
+  } catch (e) {
+    console.error("Exception marking retake as used:", e)
+    return { success: false, error: "Failed to mark retake as used" }
   }
 }
 
